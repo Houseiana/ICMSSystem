@@ -303,3 +303,85 @@ model AuditLog {
   employee   Employee? @relation(fields: [employeeId], references: [id])
   timestamp  DateTime @default(now())
 }
+
+model Stakeholder {
+  id              Int       @id @default(autoincrement())
+
+  // Basic Information
+  firstName       String
+  middleName      String?
+  lastName        String
+  preferredName   String?
+  email           String?   @unique
+  phone           String?
+  alternatePhone  String?
+  dateOfBirth     DateTime?
+  placeOfBirth    String?
+  gender          String?   // MALE, FEMALE, OTHER
+  nationality     String?
+  religion        String?
+
+  // Address Information
+  address         String?
+  city            String?
+  state           String?
+  postalCode      String?
+  country         String?
+
+  // Identification
+  nationalId      String?
+  passportNumber  String?
+
+  // Professional Information
+  occupation      String?
+  employer        String?
+  workAddress     String?
+
+  // Health Information
+  bloodGroup      String?
+  medicalConditions String?
+  allergies       String?
+
+  // Notes and Additional Info
+  notes           String?
+  tags            String?   // JSON array of tags
+
+  // Relationship connections
+  spouseId        Int?      @unique
+  spouse          Stakeholder? @relation("StakeholderSpouse", fields: [spouseId], references: [id])
+  spouseOf        Stakeholder? @relation("StakeholderSpouse")
+
+  fatherId        Int?
+  father          Stakeholder? @relation("StakeholderFather", fields: [fatherId], references: [id])
+  childrenAsFather Stakeholder[] @relation("StakeholderFather")
+
+  motherId        Int?
+  mother          Stakeholder? @relation("StakeholderMother", fields: [motherId], references: [id])
+  childrenAsMother Stakeholder[] @relation("StakeholderMother")
+
+  // Additional relationships
+  relationships   StakeholderRelationship[] @relation("StakeholderFrom")
+  relatedTo       StakeholderRelationship[] @relation("StakeholderTo")
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model StakeholderRelationship {
+  id              Int         @id @default(autoincrement())
+  fromId          Int
+  toId            Int
+  relationshipType String     // SIBLING, FRIEND, COLLEAGUE, BUSINESS_PARTNER, etc.
+  description     String?
+  strength        Int?        // 1-5 scale of relationship strength
+  since           DateTime?   // When the relationship started
+  notes           String?
+
+  from            Stakeholder @relation("StakeholderFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to              Stakeholder @relation("StakeholderTo", fields: [toId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@unique([fromId, toId, relationshipType])
+}

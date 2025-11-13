@@ -22,6 +22,12 @@ const menuItems = [
     description: 'Manage employee records'
   },
   {
+    icon: '🤝',
+    label: 'Stakeholders',
+    path: '/dashboard/stakeholders',
+    description: 'Manage stakeholder relationships'
+  },
+  {
     icon: '🏢',
     label: 'Departments',
     path: '/dashboard/departments',
