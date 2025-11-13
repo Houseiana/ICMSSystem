@@ -1,0 +1,305 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     Post[]
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean  @default(false)
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  role      String   @default("HR")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  auditLogs AuditLog[]
+}
+
+model Department {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  code        String     @unique
+  description String?
+  managerId   Int?       @unique
+  manager     Employee?  @relation("DepartmentManager", fields: [managerId], references: [id])
+  employees   Employee[] @relation("EmployeeDepartment")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Position {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String?
+  level       String?    // Junior, Mid, Senior, Lead, Manager
+  minSalary   Float?
+  maxSalary   Float?
+  employees   Employee[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Employee {
+  id              Int              @id @default(autoincrement())
+  empId           String           @unique
+
+  // Personal Information
+  firstName       String
+  middleName      String?
+  lastName        String
+  fullName        String?          // Auto-generated full name
+  preferredName   String?
+  email           String           @unique
+  personalEmail   String?
+  phone           String?
+  alternatePhone  String?
+  dateOfBirth     DateTime?
+  placeOfBirth    String?          // City, Country
+  gender          String?
+  maritalStatus   String?          // SINGLE, MARRIED, DIVORCED, WIDOWED, SEPARATED
+  bloodGroup      String?          // A+, B+, O+, AB+ etc.
+  nationality     String?
+  religion        String?
+  languages       String?          // JSON array of languages spoken
+
+  // Address Information
+  currentAddress  String?
+  permanentAddress String?
+  city            String?
+  state           String?
+  postalCode      String?
+  country         String?
+
+  // Identification Documents
+  nationalId      String?          // National ID/SSN
+  passportNumber  String?
+  passportExpiry  DateTime?
+  drivingLicense  String?
+  licenseExpiry   DateTime?
+  visaStatus      String?          // For non-citizens
+  visaExpiry      DateTime?
+
+  // Emergency Contact
+  emergencyContact1Name  String?
+  emergencyContact1Relation String?
+  emergencyContact1Phone String?
+  emergencyContact1Address String?
+  emergencyContact2Name  String?
+  emergencyContact2Relation String?
+  emergencyContact2Phone String?
+  emergencyContact2Address String?
+
+  // Education & Qualifications
+  highestEducation String?
+  university      String?
+  graduationYear  Int?
+  fieldOfStudy    String?
+  certifications  String?          // JSON array of certifications
+  skills          String?          // JSON array of skills
+
+  // Employment Details
+  departmentId    Int
+  department      Department       @relation("EmployeeDepartment", fields: [departmentId], references: [id])
+  positionId      Int
+  position        Position         @relation(fields: [positionId], references: [id])
+  managedDept     Department?      @relation("DepartmentManager")
+  managerId       Int?
+  manager         Employee?        @relation("EmployeeManager", fields: [managerId], references: [id])
+  directReports   Employee[]       @relation("EmployeeManager")
+
+  salary          Float?
+  currency        String?          @default("USD")
+  bankAccount     String?
+  bankName        String?
+  bankBranch      String?
+  taxId           String?
+  socialSecurityNumber String?
+
+  hireDate        DateTime
+  confirmationDate DateTime?       // End of probation period
+  terminationDate DateTime?
+  status          String           @default("ACTIVE")    // ACTIVE, INACTIVE, ON_LEAVE, TERMINATED, SUSPENDED, PROBATION
+  employeeType    String           @default("FULL_TIME") // FULL_TIME, PART_TIME, CONTRACT, INTERN, CONSULTANT, TEMPORARY
+  workLocation    String?          // OFFICE, REMOTE, HYBRID
+
+  // Medical Information
+  medicalConditions String?        // Any chronic conditions
+  allergies       String?
+  medications     String?
+  bloodGroupRh    String?
+
+  // Family Information
+  father          FamilyMember?    @relation("EmployeeFather")
+  mother          FamilyMember?    @relation("EmployeeMother")
+  spouse          FamilyMember?    @relation("EmployeeSpouse")
+  children        FamilyMember[]   @relation("EmployeeChildren")
+
+  // HR Records
+  attendance      Attendance[]
+  leaveRequests   LeaveRequest[]
+  payroll         Payroll[]
+  evaluations     Evaluation[]
+  auditLogs       AuditLog[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model FamilyMember {
+  id              Int       @id @default(autoincrement())
+
+  // Personal Details
+  firstName       String
+  middleName      String?
+  lastName        String
+  dateOfBirth     DateTime?
+  placeOfBirth    String?
+  gender          String?
+  nationality     String?
+  occupation      String?
+  employer        String?
+  phone           String?
+  email           String?
+  address         String?
+
+  // Identification
+  nationalId      String?
+  passportNumber  String?
+
+  // Health Information
+  bloodGroup      String?
+  medicalConditions String?
+  allergies       String?
+
+  // Relationship Information
+  relationshipType String   // FATHER, MOTHER, SPOUSE, CHILD, SIBLING, GUARDIAN
+  isDependent     Boolean  @default(false)
+  isEmergencyContact Boolean @default(false)
+
+  // Employee Relations
+  employeeAsFather   Employee? @relation("EmployeeFather", fields: [employeeAsFatherId], references: [id])
+  employeeAsFatherId Int?      @unique
+
+  employeeAsMother   Employee? @relation("EmployeeMother", fields: [employeeAsMotherId], references: [id])
+  employeeAsMotherId Int?      @unique
+
+  employeeAsSpouse   Employee? @relation("EmployeeSpouse", fields: [employeeAsSpouseId], references: [id])
+  employeeAsSpouseId Int?      @unique
+
+  employeeAsChild    Employee? @relation("EmployeeChildren", fields: [employeeAsChildId], references: [id])
+  employeeAsChildId  Int?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Attendance {
+  id         Int          @id @default(autoincrement())
+  employeeId Int
+  employee   Employee     @relation(fields: [employeeId], references: [id])
+  date       DateTime
+  checkIn    DateTime?
+  checkOut   DateTime?
+  hours      Float?
+  status     String       @default("PRESENT") // PRESENT, ABSENT, LATE, HALF_DAY, SICK_LEAVE, VACATION
+  notes      String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([employeeId, date])
+}
+
+model LeaveRequest {
+  id          Int         @id @default(autoincrement())
+  employeeId  Int
+  employee    Employee    @relation(fields: [employeeId], references: [id])
+  type        String      // ANNUAL, SICK, MATERNITY, PATERNITY, EMERGENCY, UNPAID, STUDY
+  startDate   DateTime
+  endDate     DateTime
+  days        Int
+  reason      String?
+  status      String      @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELLED
+  approvedBy  Int?
+  approvedAt  DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Payroll {
+  id             Int      @id @default(autoincrement())
+  employeeId     Int
+  employee       Employee @relation(fields: [employeeId], references: [id])
+  payPeriod      String   // "2024-01", "2024-02"
+  basicSalary    Float
+  allowances     Float?   @default(0)
+  deductions     Float?   @default(0)
+  overtime       Float?   @default(0)
+  bonus          Float?   @default(0)
+  grossPay       Float
+  tax            Float?   @default(0)
+  netPay         Float
+  payDate        DateTime?
+  status         String   @default("PENDING") // PENDING, PROCESSED, PAID, CANCELLED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([employeeId, payPeriod])
+}
+
+model Evaluation {
+  id          Int      @id @default(autoincrement())
+  employeeId  Int
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  period      String   // "2024-Q1", "2024-Annual"
+  type        String   // "Quarterly", "Annual", "Probation"
+  rating      Float?   // 1-5 scale
+  goals       String?
+  achievements String?
+  feedback    String?
+  nextGoals   String?
+  evaluatedBy Int?
+  evaluatedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  action     String   // CREATE, UPDATE, DELETE
+  tableName  String
+  recordId   Int?
+  oldValues  String?  // JSON
+  newValues  String?  // JSON
+  adminId    Int?
+  admin      Admin?   @relation(fields: [adminId], references: [id])
+  employeeId Int?
+  employee   Employee? @relation(fields: [employeeId], references: [id])
+  timestamp  DateTime @default(now())
+}
