@@ -3,6 +3,20 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
+    // Check database connectivity first
+    try {
+      await prisma.$connect()
+    } catch (dbError) {
+      console.error('Database connection error:', dbError)
+      return NextResponse.json(
+        {
+          error: 'Database not available. Please configure DATABASE_URL environment variable.',
+          details: 'Employee listing requires a working database connection.'
+        },
+        { status: 503 }
+      )
+    }
+
     const employees = await prisma.employee.findMany({
       include: {
         department: true,
@@ -35,6 +49,20 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+
+    // Check database connectivity first
+    try {
+      await prisma.$connect()
+    } catch (dbError) {
+      console.error('Database connection error:', dbError)
+      return NextResponse.json(
+        {
+          error: 'Database not available. Please configure DATABASE_URL environment variable.',
+          details: 'Employee creation requires a working database connection.'
+        },
+        { status: 503 }
+      )
+    }
     const {
       // Basic Information
       empId,

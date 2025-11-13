@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server'
-import { simpleSeedDatabase } from '@/lib/simple-seed'
+import { seedDatabase } from '@/lib/seed'
 
 export async function POST() {
   try {
-    const success = await simpleSeedDatabase()
+    const success = await seedDatabase()
 
     if (success) {
       return NextResponse.json({
         success: true,
-        message: 'Database seeded successfully'
+        message: 'Database seeded successfully with departments and positions including Senior Management Offices and Private House'
       })
     } else {
       return NextResponse.json({

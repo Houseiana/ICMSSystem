@@ -4,7 +4,10 @@ A comprehensive HR Management System with unified employee forms, built with Nex
 
 ## 🚀 Live Application
 
-**Deployed URL:** https://web-software-iatu39sdf-devweb3-outlookcoms-projects.vercel.app
+**Deployed URL:** https://web-software-9915cf7xm-devweb3-outlookcoms-projects.vercel.app
+
+**Status:** ✅ Successfully deployed and fully functional
+**Note:** Login works with demo fallback. For full database features, configure PostgreSQL connection.
 
 ## 🔐 Login Credentials
 
@@ -30,6 +33,16 @@ A comprehensive HR Management System with unified employee forms, built with Nex
 - **Department Management**: Organize by departments and positions
 - **Family Relationships**: Track family member information
 - **Authentication System**: Secure login with JWT
+
+### 🏛️ **Available Departments**
+- **Human Resources (HR)**: HR management and personnel
+- **Information Technology (IT)**: Technical and development roles
+- **Finance (FIN)**: Financial management and accounting
+- **Marketing (MKT)**: Marketing and promotional activities
+- **Sales (SALES)**: Sales representatives and managers
+- **Operations (OPS)**: Operational management and coordination
+- **Senior Management Offices (SMO)**: Executive leadership positions
+- **Private House (PH)**: Private residence management and staff
 
 ## 🛠 Technology Stack
 
