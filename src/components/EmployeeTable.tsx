@@ -46,7 +46,8 @@ export default function EmployeeTable({
   )
 
   // Get unique departments
-  const departments = [...new Set(employees.map(emp => emp.department?.name).filter(Boolean))]
+  const departmentSet = new Set(employees.map(emp => emp.department?.name).filter(Boolean))
+  const departments = Array.from(departmentSet)
 
   if (loading) {
     return (
