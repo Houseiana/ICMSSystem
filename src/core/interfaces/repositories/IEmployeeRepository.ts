@@ -44,6 +44,12 @@ export interface IEmployee {
   visaStatus?: string | null
   visaExpiry?: Date | null
 
+  // QID (Qatar ID) Information
+  qidNumber?: string | null
+  qidIssueDate?: Date | null
+  qidExpiryDate?: Date | null
+  qidLocation?: string | null
+
   // Emergency Contact
   emergencyContact1Name?: string | null
   emergencyContact1Relation?: string | null

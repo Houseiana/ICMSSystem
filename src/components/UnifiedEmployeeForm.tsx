@@ -73,6 +73,11 @@ interface FormState {
     licenseExpiry: string
     visaStatus: string
     visaExpiry: string
+    // QID (Qatar ID) Information
+    qidNumber: string
+    qidIssueDate: string
+    qidExpiryDate: string
+    qidLocation: string
     // Emergency Contacts
     emergencyContact1Name: string
     emergencyContact1Relation: string
@@ -130,6 +135,7 @@ interface FormState {
     spouseDateOfBirth: string
     spousePlaceOfBirth: string
     spouseNationality: string
+    spouseDateOfMarriage: string
     spouseOccupation: string
     spouseEmployer: string
     spousePhone: string
@@ -140,6 +146,17 @@ interface FormState {
   children: ChildInfo[]
   employers: Employer[]
   loadingEmployers: boolean
+  // Travel History
+  travelHistory: TravelHistoryEntry[]
+}
+
+interface TravelHistoryEntry {
+  id?: number
+  country: string
+  dateOfEntry: string
+  dateOfExit: string
+  purposeOfTravel: string
+  accompanyingPerson: string
 }
 
 export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, FormState> {
@@ -186,6 +203,11 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
         licenseExpiry: '',
         visaStatus: '',
         visaExpiry: '',
+        // QID (Qatar ID) Information
+        qidNumber: '',
+        qidIssueDate: '',
+        qidExpiryDate: '',
+        qidLocation: '',
         // Emergency Contacts
         emergencyContact1Name: '',
         emergencyContact1Relation: '',
@@ -243,6 +265,7 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
         spouseDateOfBirth: '',
         spousePlaceOfBirth: '',
         spouseNationality: '',
+        spouseDateOfMarriage: '',
         spouseOccupation: '',
         spouseEmployer: '',
         spousePhone: '',
@@ -252,7 +275,8 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
       numberOfChildren: 0,
       children: [],
       employers: [],
-      loadingEmployers: false
+      loadingEmployers: false,
+      travelHistory: []
     }
   }
 

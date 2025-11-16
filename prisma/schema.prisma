@@ -84,6 +84,12 @@ model Employee {
   visaStatus      String?          // For non-citizens
   visaExpiry      DateTime?
 
+  // QID (Qatar ID) Information
+  qidNumber       String?          @unique
+  qidIssueDate    DateTime?
+  qidExpiryDate   DateTime?
+  qidLocation     String?          // Where QID was issued
+
   // Emergency Contact
   emergencyContact1Name  String?
   emergencyContact1Relation String?
@@ -140,6 +146,9 @@ model Employee {
   spouse          FamilyMember?    @relation("EmployeeSpouse")
   children        FamilyMember[]   @relation("EmployeeChildren")
 
+  // Travel History
+  travelHistory   EmployeeTravelHistory[]
+
   // HR Records
   auditLogs       AuditLog[]
 
@@ -177,6 +186,7 @@ model FamilyMember {
   relationshipType String   // FATHER, MOTHER, SPOUSE, CHILD, SIBLING, GUARDIAN
   isDependent     Boolean  @default(false)
   isEmergencyContact Boolean @default(false)
+  dateOfMarriage  DateTime? // Only applicable for SPOUSE relationship
 
   // Employee Relations
   employeeAsFather   Employee? @relation("EmployeeFather", fields: [employeeAsFatherId], references: [id])
@@ -195,9 +205,32 @@ model FamilyMember {
   updatedAt       DateTime  @updatedAt
 }
 
+model EmployeeTravelHistory {
+  id              Int       @id @default(autoincrement())
 
+  // Related Employee
+  employeeId      Int
+  employee        Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
+  // Travel Details
+  country         String    // Destination country
+  dateOfEntry     DateTime  // Date entered the country
+  dateOfExit      DateTime? // Date left the country (null if still there)
+  purposeOfTravel String?   // Reason for travel (Business, Tourism, Family, etc.)
+  accompanyingPerson String? // Name of person traveling with
 
+  // Additional Information
+  city            String?   // City visited
+  accommodation   String?   // Hotel/place of stay
+  notes           String?   // Additional notes
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([employeeId])
+  @@index([country])
+  @@index([dateOfEntry])
+}
 
 model AuditLog {
   id         Int      @id @default(autoincrement())
@@ -241,6 +274,12 @@ model Stakeholder {
   nationalId      String?
   passportNumber  String?
 
+  // QID (Qatar ID) Information
+  qidNumber       String?          @unique
+  qidIssueDate    DateTime?
+  qidExpiryDate   DateTime?
+  qidLocation     String?          // Where QID was issued
+
   // Professional Information
   occupation      String?
   employer        String?
@@ -272,6 +311,14 @@ model Stakeholder {
   relationships   StakeholderRelationship[] @relation("StakeholderFrom")
   relatedTo       StakeholderRelationship[] @relation("StakeholderTo")
 
+  // Travel History
+  travelHistory   StakeholderTravelHistory[]
+
+  // Family Details (using FamilyMember structure)
+  fatherDetails   StakeholderFamilyMember? @relation("StakeholderFatherDetails")
+  motherDetails   StakeholderFamilyMember? @relation("StakeholderMotherDetails")
+  spouseDetails   StakeholderFamilyMember? @relation("StakeholderSpouseDetails")
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
@@ -293,6 +340,63 @@ model StakeholderRelationship {
   updatedAt       DateTime    @updatedAt
 
   @@unique([fromId, toId, relationshipType])
+}
+
+model StakeholderFamilyMember {
+  id              Int       @id @default(autoincrement())
+
+  // Related Stakeholder
+  stakeholderAsFatherId Int?      @unique
+  stakeholderAsFather   Stakeholder? @relation("StakeholderFatherDetails", fields: [stakeholderAsFatherId], references: [id])
+
+  stakeholderAsMotherId Int?      @unique
+  stakeholderAsMother   Stakeholder? @relation("StakeholderMotherDetails", fields: [stakeholderAsMotherId], references: [id])
+
+  stakeholderAsSpouseId Int?      @unique
+  stakeholderAsSpouse   Stakeholder? @relation("StakeholderSpouseDetails", fields: [stakeholderAsSpouseId], references: [id])
+
+  // Personal Details
+  firstName       String
+  lastName        String
+  nationality     String?
+  dateOfBirth     DateTime?
+  placeOfBirth    String?
+
+  // Spouse-specific field
+  dateOfMarriage  DateTime? // Only for spouse relationship
+
+  // Relationship Type
+  relationshipType String   // FATHER, MOTHER, SPOUSE
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model StakeholderTravelHistory {
+  id              Int       @id @default(autoincrement())
+
+  // Related Stakeholder
+  stakeholderId   Int
+  stakeholder     Stakeholder @relation(fields: [stakeholderId], references: [id], onDelete: Cascade)
+
+  // Travel Details
+  country         String    // Destination country
+  dateOfEntry     DateTime  // Date entered the country
+  dateOfExit      DateTime? // Date left the country (null if still there)
+  purposeOfTravel String?   // Reason for travel (Business, Tourism, Family, etc.)
+  accompanyingPerson String? // Name of person traveling with
+
+  // Additional Information
+  city            String?   // City visited
+  accommodation   String?   // Hotel/place of stay
+  notes           String?   // Additional notes
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([stakeholderId])
+  @@index([country])
+  @@index([dateOfEntry])
 }
 
 model Contractor {
