@@ -159,7 +159,12 @@ model Employee {
 model FamilyMember {
   id              Int       @id @default(autoincrement())
 
-  // Personal Details
+  // Link to existing Stakeholder (if selected from stakeholders list)
+  stakeholderId   Int?
+  stakeholder     Stakeholder? @relation("FamilyMemberStakeholder", fields: [stakeholderId], references: [id])
+  isFromStakeholder Boolean  @default(false) // Indicates if this was created from a stakeholder
+
+  // Personal Details (can be entered manually or auto-filled from stakeholder)
   firstName       String
   middleName      String?
   lastName        String
@@ -318,6 +323,9 @@ model Stakeholder {
   fatherDetails   StakeholderFamilyMember? @relation("StakeholderFatherDetails")
   motherDetails   StakeholderFamilyMember? @relation("StakeholderMotherDetails")
   spouseDetails   StakeholderFamilyMember? @relation("StakeholderSpouseDetails")
+
+  // Link to Employee FamilyMembers (when stakeholder is used as family member)
+  familyMemberLinks FamilyMember[] @relation("FamilyMemberStakeholder")
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
