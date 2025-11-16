@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
 import { X, Plus, Trash2, Users, Heart } from 'lucide-react'
 
 interface Stakeholder {
@@ -223,13 +222,12 @@ export default function StakeholderForm({
           <h2 className="text-2xl font-semibold text-gray-900">
             {stakeholder ? 'Edit Stakeholder' : 'Add New Stakeholder'}
           </h2>
-          <Button
-            variant="ghost"
+          <button
             onClick={onClose}
             className="p-2"
           >
             <X className="w-5 h-5" />
-          </Button>
+          </button>
         </div>
 
         <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
@@ -458,14 +456,14 @@ export default function StakeholderForm({
                   <Users className="w-5 h-5 mr-2 text-blue-500" />
                   Additional Relationships
                 </h3>
-                <Button
+                <button
                   type="button"
                   onClick={handleAddRelationship}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Relationship
-                </Button>
+                </button>
               </div>
 
               <div className="space-y-4">
@@ -501,13 +499,13 @@ export default function StakeholderForm({
                         <option value="RELATIVE">Relative</option>
                       </select>
                     </div>
-                    <Button
+                    <button
                       type="button"
                       onClick={() => handleRemoveRelationship(index)}
                       className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg"
                     >
                       <Trash2 className="w-4 h-4" />
-                    </Button>
+                    </button>
                   </div>
                 ))}
               </div>
@@ -531,22 +529,21 @@ export default function StakeholderForm({
         </div>
 
         <div className="flex items-center justify-end space-x-4 p-6 border-t bg-gray-50">
-          <Button
+          <button
             type="button"
-            variant="outline"
             onClick={onClose}
             disabled={loading}
           >
             Cancel
-          </Button>
-          <Button
+          </button>
+          <button
             type="submit"
             onClick={handleSubmit}
             disabled={loading}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             {loading ? 'Saving...' : stakeholder ? 'Update Stakeholder' : 'Create Stakeholder'}
-          </Button>
+          </button>
         </div>
       </div>
     </div>

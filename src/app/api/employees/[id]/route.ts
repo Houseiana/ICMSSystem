@@ -9,8 +9,6 @@ export async function GET(
     const employee = await prisma.employee.findUnique({
       where: { id: parseInt(params.id) },
       include: {
-        department: true,
-        position: true,
         manager: {
           select: {
             id: true,
@@ -24,8 +22,7 @@ export async function GET(
             id: true,
             firstName: true,
             lastName: true,
-            email: true,
-            position: true
+            email: true
           }
         },
         father: true,
@@ -190,36 +187,6 @@ export async function PUT(
       )
     }
 
-    // Find or create department
-    let departmentRecord = await prisma.department.findFirst({
-      where: { name: department }
-    })
-
-    if (!departmentRecord) {
-      departmentRecord = await prisma.department.create({
-        data: {
-          name: department,
-          code: department.toUpperCase().replace(/\s+/g, '_'),
-          description: `${department} department`
-        }
-      })
-    }
-
-    // Find or create position
-    let positionRecord = await prisma.position.findFirst({
-      where: { title: position }
-    })
-
-    if (!positionRecord) {
-      positionRecord = await prisma.position.create({
-        data: {
-          title: position,
-          description: `${position} position`,
-          level: 'Mid'
-        }
-      })
-    }
-
     // Update employee main information
     const updatedEmployee = await prisma.employee.update({
       where: { id: parseInt(params.id) },
@@ -268,8 +235,8 @@ export async function PUT(
         fieldOfStudy,
         certifications,
         skills,
-        departmentId: departmentRecord.id,
-        positionId: positionRecord.id,
+        department,
+        position,
         salary: salary ? parseFloat(salary) : null,
         currency: currency || 'USD',
         bankAccount,
@@ -468,8 +435,6 @@ export async function PUT(
     const completeEmployee = await prisma.employee.findUnique({
       where: { id: parseInt(params.id) },
       include: {
-        department: true,
-        position: true,
         father: true,
         mother: true,
         spouse: true,

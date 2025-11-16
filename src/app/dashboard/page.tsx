@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/DashboardLayout'
 import StatsCard from '@/components/StatsCard'
 import EmployeeForm from '@/components/EmployeeForm'
@@ -8,16 +9,16 @@ import EmployeeList from '@/components/EmployeeList'
 import { Employee } from '@/types'
 
 export default function DashboardPage() {
+  const router = useRouter()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loadingEmployees, setLoadingEmployees] = useState(true)
   const [creatingEmployee, setCreatingEmployee] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [recentActivities, setRecentActivities] = useState<any[]>([])
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
-    onLeave: 0,
     newHires: 0,
-    departments: 0,
     avgSalary: 0
   })
 
@@ -30,22 +31,22 @@ export default function DashboardPage() {
 
         // Calculate enhanced stats
         const active = data.filter((emp: any) => emp.status === 'ACTIVE').length
-        const onLeave = data.filter((emp: any) => emp.status === 'ON_LEAVE').length
-        const thisMonth = new Date()
-        const lastMonth = new Date(thisMonth.setMonth(thisMonth.getMonth() - 1))
-        const newHires = data.filter((emp: any) =>
-          new Date(emp.createdAt) >= lastMonth
-        ).length
-        const departments = new Set(data.map((emp: any) => emp.department?.name || 'Unknown')).size
-        const totalSalary = data.reduce((sum: number, emp: any) => sum + (emp.salary || 0), 0)
+
+        // Fix date calculation - create separate date objects to avoid mutation
+        const now = new Date()
+        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
+        const newHires = data.filter((emp: any) => {
+          const createdDate = new Date(emp.createdAt || emp.hireDate)
+          return createdDate >= lastMonth
+        }).length
+
+        const totalSalary = data.reduce((sum: number, emp: any) => sum + (parseFloat(emp.salary) || 0), 0)
         const avgSalary = data.length > 0 ? Math.round(totalSalary / data.length) : 0
 
         setStats({
           total: data.length,
           active,
-          onLeave,
           newHires,
-          departments,
           avgSalary
         })
       }
@@ -54,6 +55,82 @@ export default function DashboardPage() {
     } finally {
       setLoadingEmployees(false)
     }
+  }
+
+  const fetchRecentActivities = async () => {
+    try {
+      const activities: any[] = []
+
+      // Get recent employees
+      const employeeResponse = await fetch('/api/employees')
+      if (employeeResponse.ok) {
+        const employees = await employeeResponse.json()
+        const recentEmployees = employees
+          .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 2)
+
+        recentEmployees.forEach((emp: any) => {
+          activities.push({
+            id: `emp-${emp.id}`,
+            type: 'employee',
+            title: 'New employee onboarded',
+            description: `${emp.firstName} ${emp.lastName} joined ${emp.department || 'the company'}`,
+            time: new Date(emp.createdAt),
+            color: 'green'
+          })
+        })
+      }
+
+      // Get recent passports
+      try {
+        const passportResponse = await fetch('/api/passports')
+        if (passportResponse.ok) {
+          const passports = await passportResponse.json()
+          const recentPassports = passports
+            .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .slice(0, 1)
+
+          recentPassports.forEach((passport: any) => {
+            activities.push({
+              id: `passport-${passport.id}`,
+              type: 'passport',
+              title: 'New passport registered',
+              description: `${passport.ownerName} passport (${passport.passportNumber}) added`,
+              time: new Date(passport.createdAt),
+              color: 'blue'
+            })
+          })
+        }
+      } catch (error) {
+        console.log('Passports API not available')
+      }
+
+      // Sort all activities by time
+      const sortedActivities = activities
+        .sort((a, b) => b.time.getTime() - a.time.getTime())
+        .slice(0, 3)
+
+      setRecentActivities(sortedActivities)
+    } catch (error) {
+      console.error('Error fetching activities:', error)
+      setRecentActivities([])
+    }
+  }
+
+  const handleNavigateToContractors = () => {
+    router.push('/dashboard/contractors')
+  }
+
+  const handleNavigateToSettings = () => {
+    router.push('/dashboard/settings')
+  }
+
+  const handleViewReports = () => {
+    router.push('/dashboard/reports')
+  }
+
+  const handleViewAllActivities = () => {
+    router.push('/dashboard/activity')
   }
 
   const handleCreateEmployee = async (employeeData: any) => {
@@ -70,6 +147,7 @@ export default function DashboardPage() {
         setEmployees(prev => [newEmployee, ...prev])
         setShowForm(false)
         fetchEmployees() // Refresh stats
+        fetchRecentActivities() // Refresh activities
       } else {
         const errorData = await response.json()
         alert(errorData.error || 'Failed to create employee')
@@ -84,6 +162,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchEmployees()
+    fetchRecentActivities()
   }, [])
 
   return (
@@ -96,7 +175,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
             title="Total Employees"
             value={stats.total}
@@ -111,22 +190,10 @@ export default function DashboardPage() {
             textColor="text-green-700"
           />
           <StatsCard
-            title="On Leave"
-            value={stats.onLeave}
-            icon="🏖️"
-            bgColor="bg-gradient-to-r from-yellow-50 to-yellow-100"
-            textColor="text-yellow-700"
-          />
-          <StatsCard
             title="New Hires"
             value={stats.newHires}
             icon="🆕"
             trend={{ value: 12, isPositive: true }}
-          />
-          <StatsCard
-            title="Departments"
-            value={stats.departments}
-            icon="🏢"
           />
           <StatsCard
             title="Avg. Salary"
@@ -153,7 +220,10 @@ export default function DashboardPage() {
               </div>
             </button>
 
-            <button className="flex items-center space-x-3 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200">
+            <button
+              onClick={handleViewReports}
+              className="flex items-center space-x-3 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200"
+            >
               <span className="text-2xl">📊</span>
               <div className="text-left">
                 <p className="font-medium text-purple-900">View Reports</p>
@@ -161,15 +231,21 @@ export default function DashboardPage() {
               </div>
             </button>
 
-            <button className="flex items-center space-x-3 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-200">
-              <span className="text-2xl">💰</span>
+            <button
+              onClick={handleNavigateToContractors}
+              className="flex items-center space-x-3 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-200"
+            >
+              <span className="text-2xl">🤝🏢</span>
               <div className="text-left">
-                <p className="font-medium text-green-900">Process Payroll</p>
-                <p className="text-sm text-green-600">Monthly payments</p>
+                <p className="font-medium text-green-900">Manage Contractors</p>
+                <p className="text-sm text-green-600">Service providers</p>
               </div>
             </button>
 
-            <button className="flex items-center space-x-3 p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors border border-orange-200">
+            <button
+              onClick={handleNavigateToSettings}
+              className="flex items-center space-x-3 p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors border border-orange-200"
+            >
               <span className="text-2xl">⚙️</span>
               <div className="text-left">
                 <p className="font-medium text-orange-900">Settings</p>
@@ -190,35 +266,33 @@ export default function DashboardPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Recent Activity</h2>
-            <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
+            <button
+              onClick={handleViewAllActivities}
+              className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+            >
               View All
             </button>
           </div>
           <div className="space-y-4">
-            <div className="flex items-start space-x-4">
-              <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">New employee onboarded</p>
-                <p className="text-xs text-gray-500">John Smith joined the Development team</p>
-                <p className="text-xs text-gray-400">2 hours ago</p>
+            {recentActivities.length > 0 ? (
+              recentActivities.map((activity) => (
+                <div key={activity.id} className="flex items-start space-x-4">
+                  <div className={`w-2 h-2 bg-${activity.color}-500 rounded-full mt-2`}></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">{activity.title}</p>
+                    <p className="text-xs text-gray-500">{activity.description}</p>
+                    <p className="text-xs text-gray-400">
+                      {new Date(activity.time).toLocaleDateString()} {new Date(activity.time).toLocaleTimeString()}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-sm">No recent activity to display</p>
+                <p className="text-xs text-gray-400 mt-1">Activities will appear here as you use the system</p>
               </div>
-            </div>
-            <div className="flex items-start space-x-4">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">Leave request submitted</p>
-                <p className="text-xs text-gray-500">Sarah Johnson requested vacation leave</p>
-                <p className="text-xs text-gray-400">5 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-4">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">Department update</p>
-                <p className="text-xs text-gray-500">IT department structure modified</p>
-                <p className="text-xs text-gray-400">1 day ago</p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 

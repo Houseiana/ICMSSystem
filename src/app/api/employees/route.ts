@@ -18,22 +18,6 @@ export async function GET() {
     }
 
     const employees = await prisma.employee.findMany({
-      include: {
-        department: true,
-        position: true,
-        manager: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        },
-        father: true,
-        mother: true,
-        spouse: true,
-        children: true
-      },
       orderBy: { createdAt: 'desc' }
     })
     return NextResponse.json(employees)
@@ -121,6 +105,7 @@ export async function POST(request: NextRequest) {
       // Employment Details
       department,
       position,
+      employerId,
       salary,
       currency,
       bankAccount,
@@ -199,35 +184,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Find or create department
-    let departmentRecord = await prisma.department.findFirst({
-      where: { name: department }
-    })
-
-    if (!departmentRecord) {
-      departmentRecord = await prisma.department.create({
-        data: {
-          name: department,
-          code: department.toUpperCase().replace(/\s+/g, '_'),
-          description: `${department} department`
-        }
-      })
-    }
-
-    // Find or create position
-    let positionRecord = await prisma.position.findFirst({
-      where: { title: position }
-    })
-
-    if (!positionRecord) {
-      positionRecord = await prisma.position.create({
-        data: {
-          title: position,
-          description: `${position} position`,
-          level: 'Mid'
-        }
-      })
-    }
 
     // Prepare family member data
     const familyMembers = []
@@ -348,8 +304,9 @@ export async function POST(request: NextRequest) {
         fieldOfStudy,
         certifications,
         skills,
-        departmentId: departmentRecord.id,
-        positionId: positionRecord.id,
+        department,
+        position,
+        employerId: employerId ? parseInt(employerId) : null,
         salary: salary ? parseFloat(salary) : null,
         currency: currency || 'USD',
         bankAccount,
@@ -367,8 +324,7 @@ export async function POST(request: NextRequest) {
         medications
       },
       include: {
-        department: true,
-        position: true
+        employer: true
       }
     })
 
@@ -421,8 +377,7 @@ export async function POST(request: NextRequest) {
     const completeEmployee = await prisma.employee.findUnique({
       where: { id: employee.id },
       include: {
-        department: true,
-        position: true,
+        employer: true,
         father: true,
         mother: true,
         spouse: true,

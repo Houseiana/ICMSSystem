@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -42,29 +42,7 @@ model Admin {
   auditLogs AuditLog[]
 }
 
-model Department {
-  id          Int        @id @default(autoincrement())
-  name        String     @unique
-  code        String     @unique
-  description String?
-  managerId   Int?       @unique
-  manager     Employee?  @relation("DepartmentManager", fields: [managerId], references: [id])
-  employees   Employee[] @relation("EmployeeDepartment")
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-}
 
-model Position {
-  id          Int        @id @default(autoincrement())
-  title       String
-  description String?
-  level       String?    // Junior, Mid, Senior, Lead, Manager
-  minSalary   Float?
-  maxSalary   Float?
-  employees   Employee[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-}
 
 model Employee {
   id              Int              @id @default(autoincrement())
@@ -125,14 +103,15 @@ model Employee {
   skills          String?          // JSON array of skills
 
   // Employment Details
-  departmentId    Int
-  department      Department       @relation("EmployeeDepartment", fields: [departmentId], references: [id])
-  positionId      Int
-  position        Position         @relation(fields: [positionId], references: [id])
-  managedDept     Department?      @relation("DepartmentManager")
+  department      String?
+  position        String?
   managerId       Int?
   manager         Employee?        @relation("EmployeeManager", fields: [managerId], references: [id])
   directReports   Employee[]       @relation("EmployeeManager")
+
+  // Employer Relationship
+  employerId      Int?             // Reference to Employer
+  employer        Employer?        @relation(fields: [employerId], references: [id])
 
   salary          Float?
   currency        String?          @default("USD")
@@ -162,10 +141,6 @@ model Employee {
   children        FamilyMember[]   @relation("EmployeeChildren")
 
   // HR Records
-  attendance      Attendance[]
-  leaveRequests   LeaveRequest[]
-  payroll         Payroll[]
-  evaluations     Evaluation[]
   auditLogs       AuditLog[]
 
   createdAt       DateTime         @default(now())
@@ -220,75 +195,9 @@ model FamilyMember {
   updatedAt       DateTime  @updatedAt
 }
 
-model Attendance {
-  id         Int          @id @default(autoincrement())
-  employeeId Int
-  employee   Employee     @relation(fields: [employeeId], references: [id])
-  date       DateTime
-  checkIn    DateTime?
-  checkOut   DateTime?
-  hours      Float?
-  status     String       @default("PRESENT") // PRESENT, ABSENT, LATE, HALF_DAY, SICK_LEAVE, VACATION
-  notes      String?
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
 
-  @@unique([employeeId, date])
-}
 
-model LeaveRequest {
-  id          Int         @id @default(autoincrement())
-  employeeId  Int
-  employee    Employee    @relation(fields: [employeeId], references: [id])
-  type        String      // ANNUAL, SICK, MATERNITY, PATERNITY, EMERGENCY, UNPAID, STUDY
-  startDate   DateTime
-  endDate     DateTime
-  days        Int
-  reason      String?
-  status      String      @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELLED
-  approvedBy  Int?
-  approvedAt  DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-}
 
-model Payroll {
-  id             Int      @id @default(autoincrement())
-  employeeId     Int
-  employee       Employee @relation(fields: [employeeId], references: [id])
-  payPeriod      String   // "2024-01", "2024-02"
-  basicSalary    Float
-  allowances     Float?   @default(0)
-  deductions     Float?   @default(0)
-  overtime       Float?   @default(0)
-  bonus          Float?   @default(0)
-  grossPay       Float
-  tax            Float?   @default(0)
-  netPay         Float
-  payDate        DateTime?
-  status         String   @default("PENDING") // PENDING, PROCESSED, PAID, CANCELLED
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  @@unique([employeeId, payPeriod])
-}
-
-model Evaluation {
-  id          Int      @id @default(autoincrement())
-  employeeId  Int
-  employee    Employee @relation(fields: [employeeId], references: [id])
-  period      String   // "2024-Q1", "2024-Annual"
-  type        String   // "Quarterly", "Annual", "Probation"
-  rating      Float?   // 1-5 scale
-  goals       String?
-  achievements String?
-  feedback    String?
-  nextGoals   String?
-  evaluatedBy Int?
-  evaluatedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
 
 model AuditLog {
   id         Int      @id @default(autoincrement())
@@ -385,3 +294,963 @@ model StakeholderRelationship {
 
   @@unique([fromId, toId, relationshipType])
 }
+
+model Contractor {
+  id              Int       @id @default(autoincrement())
+
+  // Basic Information
+  name            String
+  type            String    // HOTEL, AIRLINE, TRAVEL_AGENT, PRIVATE_JET, CAR_RENTAL, RESTAURANT, SECURITY, CATERING, TRANSPORTATION, EVENT_PLANNING, ACCOMMODATION, TOUR_OPERATOR
+  category        String?   // Subcategory like "Luxury Hotel", "Budget Airline", etc.
+  description     String?   // Detailed description of services
+
+  // Location Information
+  address         String?
+  city            String?
+  state           String?
+  country         String?
+  postalCode      String?
+  timeZone        String?
+
+  // Contact Information
+  website         String?
+  mainEmail       String?
+  mainPhone       String?
+  faxNumber       String?
+
+  // Business Details
+  services        String?   // JSON array of services provided
+  businessHours   String?   // JSON object with operating hours
+  languages       String?   // JSON array of supported languages
+  paymentMethods  String?   // JSON array of accepted payment methods
+
+  // Quality & Ratings
+  starRating      Int?      // For hotels, airlines rating (1-5)
+  certifications  String?   // JSON array of certifications (ISO, IATA, etc.)
+  specialFeatures String?   // JSON array of special features/amenities
+
+  // Business Information
+  establishedYear Int?
+  employeeCount   String?   // "1-10", "11-50", "51-200", "200+", etc.
+  annualRevenue   String?   // Revenue range
+
+  // Contract Details
+  contractType    String?   // PREFERRED, STANDARD, TRIAL, BLACKLISTED
+  contractStart   DateTime?
+  contractEnd     DateTime?
+  commissionRate  Float?    // Commission percentage
+  creditTerms     String?   // Payment terms
+
+  // Status & Notes
+  status          String    @default("ACTIVE") // ACTIVE, INACTIVE, PENDING, SUSPENDED
+  notes           String?   // Internal notes
+  tags            String?   // JSON array of tags for categorization
+
+  // Emergency & Support
+  emergency24h    Boolean   @default(false)
+  supportEmail    String?
+  supportPhone    String?
+
+  // Relationships
+  contacts        ContractorContact[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([type])
+  @@index([country, city])
+}
+
+model ContractorContact {
+  id              Int       @id @default(autoincrement())
+  contractorId    Int
+  contractor      Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+
+  // Personal Information
+  firstName       String
+  lastName        String
+  jobTitle        String?
+  department      String?   // Sales, Operations, Reservations, Customer Service, etc.
+
+  // Contact Information
+  email           String?
+  phone           String?
+  mobile          String?
+  whatsapp        String?
+  skype           String?
+
+  // Contact Preferences
+  preferredContact String   @default("EMAIL") // EMAIL, PHONE, WHATSAPP, SKYPE
+  bestTimeToCall  String?   // "9AM-5PM GMT", "Anytime", "Business Hours", etc.
+  languages       String?   // JSON array of languages spoken
+
+  // Role & Responsibilities
+  isPrimary       Boolean   @default(false)
+  responsibilities String?  // JSON array of what they handle
+  authority       String?   // What they can approve/decide
+
+  // Availability
+  workingHours    String?   // JSON object with working schedule
+  emergencyContact Boolean  @default(false)
+
+  // Additional Information
+  notes           String?
+  status          String    @default("ACTIVE") // ACTIVE, INACTIVE
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model TaskHelper {
+  id              Int       @id @default(autoincrement())
+
+  // Personal Information
+  firstName       String
+  middleName      String?
+  lastName        String
+  fullName        String?   // Auto-generated full name
+  preferredName   String?
+  dateOfBirth     DateTime?
+  placeOfBirth    String?   // City, Country
+  gender          String?   // MALE, FEMALE, OTHER
+  maritalStatus   String?   // SINGLE, MARRIED, DIVORCED, WIDOWED, SEPARATED
+  bloodGroup      String?   // A+, B+, O+, AB+ etc.
+  nationality     String?
+  religion        String?
+  languages       String?   // JSON array of languages spoken
+
+  // Contact Information
+  primaryEmail    String?   @unique
+  personalEmail   String?
+  workEmail       String?
+  primaryPhone    String?
+  mobilePhone     String?
+  whatsappNumber  String?
+  homePhone       String?
+  workPhone       String?
+  skypeId         String?
+  telegramId      String?
+  preferredContact String   @default("PHONE") // PHONE, EMAIL, WHATSAPP, TELEGRAM, SKYPE
+
+  // Address Information
+  currentAddress  String?
+  permanentAddress String?
+  city            String?
+  state           String?
+  postalCode      String?
+  country         String?
+  coordinates     String?   // GPS coordinates if available
+
+  // Identification Documents
+  nationalId      String?
+  passportNumber  String?
+  passportExpiry  DateTime?
+  drivingLicense  String?
+  licenseExpiry   DateTime?
+  visaStatus      String?   // For non-citizens
+  visaExpiry      DateTime?
+
+  // Emergency Contacts
+  emergencyContact1Name     String?
+  emergencyContact1Relation String?
+  emergencyContact1Phone    String?
+  emergencyContact1Address  String?
+  emergencyContact2Name     String?
+  emergencyContact2Relation String?
+  emergencyContact2Phone    String?
+  emergencyContact2Address  String?
+
+  // Work Details
+  workType        String    @default("INTERNAL") // INTERNAL, EXTERNAL, CONTRACT, FREELANCE
+  workLocation    String?   // Office address or "Remote" or "Hybrid"
+  jobTitle        String?
+  department      String?
+  workDescription String?   // What tasks they help with
+  skills          String?   // JSON array of skills
+  specializations String?   // JSON array of specializations
+
+  // Collaboration & Availability
+  degreeOfCooperation String @default("HIGH") // HIGH, MEDIUM, LOW, OCCASIONAL
+  availability    String?   // JSON object with working schedule
+  timeZone        String?
+  bestTimeToCall  String?
+  workingHours    String?   // JSON object with detailed schedule
+
+  // Education & Qualifications
+  highestEducation String?
+  university      String?
+  graduationYear  Int?
+  fieldOfStudy    String?
+  certifications  String?   // JSON array of certifications
+  previousExperience String? // Work history summary
+
+  // Financial Information
+  paymentType     String?   // HOURLY, DAILY, WEEKLY, MONTHLY, PROJECT_BASED, VOLUNTEER
+  hourlyRate      Float?
+  dailyRate       Float?
+  monthlyRate     Float?
+  currency        String?   @default("USD")
+  paymentMethod   String?   // BANK_TRANSFER, CASH, PAYPAL, CHECK, etc.
+  bankAccount     String?
+  bankName        String?
+  paymentNotes    String?
+
+  // Gifts & Benefits
+  giftsReceived   String?   // JSON array of gifts with dates and values
+  benefitsProvided String?  // JSON array of benefits provided
+  bonusHistory    String?   // JSON array of bonuses with dates and amounts
+
+  // Performance & Ratings
+  overallRating   Float?    // 1-5 scale
+  reliability     Float?    // 1-5 scale
+  quality         Float?    // 1-5 scale
+  communication   Float?    // 1-5 scale
+  punctuality     Float?    // 1-5 scale
+
+  // Medical & Health
+  medicalConditions String? // Any conditions to be aware of
+  allergies       String?
+  medications     String?
+  healthInsurance Boolean   @default(false)
+
+  // Contract & Legal
+  contractType    String?   // TEMPORARY, PERMANENT, SEASONAL, PROJECT_BASED
+  contractStart   DateTime?
+  contractEnd     DateTime?
+  contractTerms   String?   // Special terms and conditions
+  confidentialityAgreement Boolean @default(false)
+
+  // Background & References
+  backgroundCheck Boolean   @default(false)
+  references      String?   // JSON array of references
+  previousEmployers String? // JSON array of previous work
+  criminalRecord  Boolean   @default(false)
+
+  // Personal Preferences & Notes
+  personalInterests String? // JSON array of interests/hobbies
+  workPreferences String?   // Preferred types of tasks
+  culturalConsiderations String? // Any cultural or religious considerations
+  personalNotes   String?   // General notes about the person
+  managerNotes    String?   // Management notes
+
+  // Status & Tracking
+  status          String    @default("ACTIVE") // ACTIVE, INACTIVE, ON_LEAVE, TERMINATED, SUSPENDED
+  hireDate        DateTime  @default(now())
+  lastContactDate DateTime?
+  nextReviewDate  DateTime?
+
+  // Relationships
+  supervisorId    Int?
+  supervisor      TaskHelper? @relation("TaskHelperSupervisor", fields: [supervisorId], references: [id])
+  subordinates    TaskHelper[] @relation("TaskHelperSupervisor")
+
+  // System Fields
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([workType])
+  @@index([status])
+  @@index([country, city])
+}
+
+model Visa {
+  id              Int       @id @default(autoincrement())
+
+  // Person Information (Imported from Employee or Stakeholder)
+  personType      String    // EMPLOYEE, STAKEHOLDER
+  personId        Int       // ID from Employee or Stakeholder table
+  personName      String    // Full name for display
+  personEmail     String?   // Email for reference
+  personNationality String? // Person's nationality
+
+  // Visa Destination Country
+  destinationCountry String // UK, SCHENGEN, KSA, USA, TURKEY
+  countryIcon     String    // Flag emoji or icon identifier
+  countryFullName String    // Full country/region name
+
+  // Visa Status
+  visaStatus      String    // HAS_VISA, NO_VISA, NEEDS_VISA
+
+  // Visa Details (when HAS_VISA)
+  visaNumber      String?   // Visa number/reference
+  issuanceDate    DateTime? // Date visa was issued
+  expiryDate      DateTime? // Date visa expires
+  issuanceLocation String?  // Where visa was issued (embassy/consulate)
+
+  // Duration and Stay Information
+  visaLength      Int?      // Length in days/months
+  lengthType      String?   @default("DAYS") // DAYS, MONTHS, YEARS
+  maxStayDuration Int?      // Maximum stay duration
+  stayDurationType String?  @default("DAYS") // DAYS, MONTHS, YEARS
+
+  // Visa Category and Type
+  visaCategory    String?   // VISIT, BUSINESS, ESCORT, DOMESTIC_WORKER, TOURIST, STUDENT, WORK, TRANSIT, FAMILY, MEDICAL
+  visaType        String?   // SINGLE_ENTRY, MULTIPLE_ENTRY, TRANSIT
+  entries         String?   @default("SINGLE") // SINGLE, MULTIPLE, UNLIMITED
+
+  // Application Information
+  applicationDate DateTime? // Date application was submitted
+  applicationRef  String?   // Application reference number
+  processingTime  Int?      // Processing time in days
+  applicationFee  Float?    // Application fee paid
+  feeCurrency     String?   @default("USD") // Currency of fee
+
+  // Supporting Documents
+  documentsSubmitted String? // JSON array of documents
+  documentsRequired  String? // JSON array of required documents
+  photoRequired   Boolean   @default(true)
+  biometricsRequired Boolean @default(false)
+  interviewRequired Boolean @default(false)
+
+  // Embassy/Consulate Information
+  embassy         String?   // Embassy/consulate name
+  embassyLocation String?   // Embassy address
+  embassyContact  String?   // Embassy contact information
+  appointmentDate DateTime? // Appointment date if required
+  appointmentTime String?   // Appointment time
+
+  // Travel Information
+  purposeOfTravel String?   // Purpose description
+  plannedDepartureDate DateTime? // When person plans to travel
+  plannedReturnDate DateTime?    // When person plans to return
+  accommodationDetails String?   // Where person will stay
+  sponsorInformation String?     // Sponsor details if applicable
+  invitationLetter Boolean  @default(false) // Has invitation letter
+
+  // Financial Information
+  financialProof  String?   // Type of financial proof provided
+  bankStatement   Boolean   @default(false) // Bank statement provided
+  sponsorSupport  Boolean   @default(false) // Sponsor will provide support
+  insuranceCoverage Boolean @default(false) // Travel insurance coverage
+  insuranceProvider String? // Insurance company name
+
+  // Previous Travel History
+  previousVisas   String?   // JSON array of previous visas
+  refusedBefore   Boolean   @default(false) // Previously refused visa
+  refusalReason   String?   // Reason for previous refusal
+  bannedCountries String?   // JSON array of countries person is banned from
+
+  // Processing Status
+  applicationStatus String  @default("DRAFT") // DRAFT, SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, COLLECTED
+  processingStage String?   // Current processing stage
+  expectedDecision DateTime? // Expected decision date
+  actualDecision  DateTime? // Actual decision date
+  decisionDetails String?   // Decision details/notes
+
+  // Visa Status for Previous/Current tracking
+  isActive        Boolean   @default(true) // true = Current visa, false = Previous visa
+  archiveReason   String?   // Why was this visa archived (expired, replaced, cancelled)
+
+  // Rejection Information (if applicable)
+  rejectionReason String?   // Reason for rejection
+  appealPossible  Boolean   @default(false) // Can appeal decision
+  appealDeadline  DateTime? // Appeal deadline
+  reapplicationDate DateTime? // Earliest reapplication date
+
+  // Collection/Delivery
+  collectionMethod String?  // IN_PERSON, COURIER, MAIL
+  collectionLocation String? // Where to collect
+  courierTracking String?   // Courier tracking number
+  passportStatus  String?   @default("WITH_APPLICANT") // WITH_APPLICANT, WITH_EMBASSY, COLLECTED
+
+  // Renewal Information
+  renewalEligible Boolean   @default(false) // Eligible for renewal
+  renewalBefore   DateTime? // Renew before this date
+  renewalProcess  String?   // Renewal process notes
+
+  // Additional Information
+  specialRequirements String? // Special requirements or notes
+  medicalRequirements String? // Medical requirements
+  vaccinationRequired Boolean @default(false) // Vaccination required
+  quarantineRequired Boolean  @default(false) // Quarantine required
+  covidRequirements String?   // COVID-related requirements
+
+  // Internal Notes and Tracking
+  internalNotes   String?   // Internal processing notes
+  assignedOfficer String?   // Assigned processing officer
+  priority        String?   @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  tags            String?   // JSON array of tags for categorization
+
+  // Note: No direct foreign key relationships to avoid conflicts
+  // personType and personId fields store the reference information
+
+  // System Fields
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdBy       String?   // Who created the record
+  lastModifiedBy  String?   // Who last modified the record
+
+  // Travel History
+  travelHistory   TravelHistory[]
+
+  @@index([destinationCountry])
+  @@index([visaStatus])
+  @@index([personType, personId])
+  @@index([applicationStatus])
+  @@index([expiryDate])
+  @@index([isActive])
+}
+
+model TravelHistory {
+  id              Int       @id @default(autoincrement())
+
+  // Related Visa
+  visaId          Int
+  visa            Visa      @relation(fields: [visaId], references: [id], onDelete: Cascade)
+
+  // Trip Details
+  tripPurpose     String?   // Purpose of this specific trip
+  tripType        String?   // BUSINESS, LEISURE, EMERGENCY, MEDICAL, FAMILY, EDUCATION, TRANSIT
+
+  // Travel Dates
+  departureDate   DateTime? // When they left
+  arrivalDate     DateTime? // When they arrived at destination
+  returnDate      DateTime? // When they returned (if completed)
+
+  // Travel Details
+  departureCity   String?   // City/Airport of departure
+  arrivalCity     String?   // City/Airport of arrival
+  transportMode   String?   // FLIGHT, TRAIN, BUS, CAR, SHIP
+  flightNumber    String?   // Flight number if applicable
+
+  // Accommodation
+  accommodationType String? // HOTEL, FAMILY, FRIENDS, AIRBNB, OFFICE, OTHER
+  accommodationName String? // Name of hotel/place
+  accommodationAddress String? // Address where they stayed
+
+  // Trip Status
+  tripStatus      String    @default("PLANNED") // PLANNED, IN_PROGRESS, COMPLETED, CANCELLED
+
+  // Entry/Exit Details
+  entryPoint      String?   // Border crossing/airport used for entry
+  exitPoint       String?   // Border crossing/airport used for exit
+  entryStamp      Boolean   @default(false) // Did they get entry stamp
+  exitStamp       Boolean   @default(false) // Did they get exit stamp
+
+  // Duration
+  plannedDuration Int?      // Planned duration in days
+  actualDuration  Int?      // Actual duration in days
+
+  // Compliance
+  stayWithinLimits Boolean  @default(true) // Did they stay within visa limits
+  reportedToAuthorities Boolean @default(false) // Did they report to authorities if required
+
+  // Companions
+  travelingAlone  Boolean   @default(true)
+  companions      String?   // JSON array of companions
+
+  // Financial
+  estimatedCost   Float?    // Estimated trip cost
+  actualCost      Float?    // Actual trip cost
+  currency        String?   @default("USD")
+  fundingSource   String?   // Who paid for the trip
+
+  // Documentation
+  documents       String?   // JSON array of documents carried
+  insuranceDetails String?  // Travel insurance details
+
+  // Emergency Contacts During Trip
+  emergencyContactLocal String? // Local emergency contact
+  emergencyContactHome  String? // Home country emergency contact
+
+  // Health & Safety
+  vaccinationsRequired String? // Required vaccinations
+  healthDeclaration   Boolean  @default(false) // Did they complete health forms
+  quarantineRequired  Boolean  @default(false) // Was quarantine required
+  quarantineDuration  Int?     // Quarantine days if applicable
+
+  // Immigration Experience
+  immigrationIssues   Boolean  @default(false) // Any issues at immigration
+  immigrationNotes    String?  // Notes about immigration experience
+  customsIssues       Boolean  @default(false) // Any issues at customs
+  customsNotes        String?  // Notes about customs experience
+
+  // Return Details
+  returnReason        String?  // Reason for return
+  extendedStay        Boolean  @default(false) // Did they extend their stay
+  extensionDetails    String?  // Details of extension if any
+
+  // Notes and Observations
+  tripNotes           String?  // General notes about the trip
+  lessonsLearned      String?  // What did they learn from this trip
+  wouldRecommend      Boolean? // Would they recommend this destination
+  overallRating       Float?   // Trip rating 1-5
+
+  // Administrative
+  createdBy           String?  // Who added this record
+  verifiedBy          String?  // Who verified this information
+  verificationDate    DateTime? // When was this verified
+
+  // System Fields
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([visaId])
+  @@index([departureDate])
+  @@index([tripStatus])
+}
+
+model Employer {
+  id              Int       @id @default(autoincrement())
+
+  // Employer Type
+  employerType    String    @default("COMPANY") // COMPANY, INDIVIDUAL
+
+  // Basic Information (Company)
+  companyName     String?   // Full company/organization name (required for COMPANY type)
+  tradingName     String?   // Trading name if different
+  legalName       String?   // Legal name if different
+  companyType     String?   // CORPORATION, LLC, PARTNERSHIP, GOVERNMENT, NON_PROFIT, STARTUP, SME
+  industry        String?   // Industry sector
+  businessNature  String?   // Nature of business description
+
+  // Personal Information (Individual)
+  firstName       String?   // First name (required for INDIVIDUAL type)
+  middleName      String?   // Middle name
+  lastName        String?   // Last name (required for INDIVIDUAL type)
+  fullName        String?   // Auto-generated full name for individuals
+  preferredName   String?   // Preferred/nickname
+  dateOfBirth     DateTime? // Date of birth
+  placeOfBirth    String?   // Place of birth
+  gender          String?   // MALE, FEMALE, OTHER
+  maritalStatus   String?   // SINGLE, MARRIED, DIVORCED, WIDOWED, SEPARATED
+  nationality     String?   // Nationality
+  profession      String?   // Professional occupation for individuals
+
+  // Registration Information
+  registrationNumber String? @unique // Company registration number
+  taxId           String?   // Tax identification number
+  vatNumber       String?   // VAT registration number
+  licenseNumber   String?   // Business license number
+  incorporationDate DateTime? // Date of incorporation
+
+  // Contact Information
+  primaryEmail    String?   // Main company email
+  secondaryEmail  String?   // Alternative email
+  mainPhone       String?   // Main phone number
+  alternatePhone  String?   // Alternative phone
+  faxNumber       String?   // Fax number
+  website         String?   // Company website
+
+  // Address Information
+  headOfficeAddress String? // Head office address
+  mailingAddress  String?   // Mailing address if different
+  city            String?   // City
+  state           String?   // State/Province
+  country         String?   // Country
+  postalCode      String?   // Postal/ZIP code
+  timeZone        String?   // Company time zone
+
+  // Business Details
+  establishedYear Int?      // Year established
+  employeeCount   String?   // Employee count range (1-10, 11-50, 51-200, 200+)
+  annualRevenue   String?   // Annual revenue range
+  marketCap       String?   // Market capitalization
+  stockSymbol     String?   // Stock exchange symbol
+  publiclyListed  Boolean   @default(false) // Is publicly listed
+
+  // Operational Details
+  businessHours   String?   // JSON object with operating hours
+  operatingCountries String? // JSON array of countries they operate in
+  languages       String?   // JSON array of supported languages
+  currencies      String?   // JSON array of currencies they work with
+
+  // Reputation & Certification
+  creditRating    String?   // Credit rating
+  certifications  String?   // JSON array of certifications (ISO, etc.)
+  awards          String?   // JSON array of awards received
+  accreditations  String?   // JSON array of accreditations
+
+  // Financial Information
+  bankName        String?   // Primary bank name
+  bankAddress     String?   // Bank address
+  accountNumber   String?   // Account number (encrypted)
+  routingNumber   String?   // Bank routing number
+  swiftCode       String?   // SWIFT code for international
+  paymentTerms    String?   // Standard payment terms
+
+  // Relationship Information
+  relationshipType String? // CLIENT, PARTNER, VENDOR, COMPETITOR, POTENTIAL
+  relationshipStart DateTime? // When relationship started
+  contractValue   Float?    // Total contract value
+  paymentHistory  String?   // JSON array of payment history
+
+  // Key Personnel
+  ceoName         String?   // CEO/Managing Director name
+  ceoEmail        String?   // CEO email
+  hrContactName   String?   // HR contact name
+  hrContactEmail  String?   // HR contact email
+  hrContactPhone  String?   // HR contact phone
+  financeContactName String? // Finance contact name
+  financeContactEmail String? // Finance contact email
+
+  // Legal & Compliance
+  legalStructure  String?   // Legal structure details
+  regulatoryBody  String?   // Governing regulatory body
+  complianceNotes String?   // Compliance requirements
+  auditFirm       String?   // External audit firm
+  legalRepresentative String? // Legal representative
+
+  // Performance & Ratings
+  overallRating   Float?    // Overall rating 1-5
+  reliabilityRating Float?  // Reliability rating 1-5
+  qualityRating   Float?    // Quality of service rating 1-5
+  paymentRating   Float?    // Payment promptness rating 1-5
+  communicationRating Float? // Communication rating 1-5
+
+  // Benefits & Compensation
+  benefits        String?   // JSON array of employee benefits
+  salaryRange     String?   // Salary range offered
+  bonusStructure  String?   // Bonus structure details
+  pensionScheme   Boolean   @default(false) // Has pension scheme
+  healthInsurance Boolean   @default(false) // Provides health insurance
+
+  // Work Environment
+  workCulture     String?   // Description of work culture
+  remoteWorkPolicy String? // Remote work policy
+  diversityPolicy String?  // Diversity and inclusion policy
+  trainingPrograms String? // JSON array of training programs
+  careerDevelopment String? // Career development opportunities
+
+  // Social & Environmental
+  csrActivities   String?   // JSON array of CSR activities
+  environmentalPolicy String? // Environmental policy
+  sustainabilityRating String? // Sustainability rating
+  charitableActivities String? // Charitable activities
+
+  // Technology & Systems
+  technologyStack String?   // JSON array of technologies used
+  systemsUsed     String?   // JSON array of business systems
+  digitalization String?    // Level of digitalization
+  innovationIndex Float?    // Innovation index rating
+
+  // Risk Assessment
+  riskLevel       String?   @default("LOW") // LOW, MEDIUM, HIGH, CRITICAL
+  riskFactors     String?   // JSON array of identified risks
+  creditLimit     Float?    // Approved credit limit
+  insuranceCoverage Float?  // Insurance coverage amount
+
+  // Documents & Attachments
+  documents       String?   // JSON array of document references
+  contracts       String?   // JSON array of contract references
+  proposals       String?   // JSON array of proposals
+  reports         String?   // JSON array of reports
+
+  // Communication Preferences
+  preferredContactMethod String? @default("EMAIL") // EMAIL, PHONE, VIDEO_CALL, IN_PERSON
+  communicationSchedule String? // Preferred communication schedule
+  escalationProcess String?     // Escalation process details
+  keyDecisionMakers String?     // JSON array of key decision makers
+
+  // Status & Tracking
+  status          String    @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED, BLACKLISTED, POTENTIAL
+  onboardingStatus String?  // Onboarding progress status
+  lastInteraction DateTime? // Last interaction date
+  nextReviewDate  DateTime? // Next review/evaluation date
+  renewalDate     DateTime? // Contract renewal date
+
+  // Internal Notes
+  publicNotes     String?   // Notes visible to all staff
+  privateNotes    String?   // Private notes for management
+  tags            String?   // JSON array of tags for categorization
+  alerts          String?   // JSON array of alerts/warnings
+
+  // Relationships
+  contacts        EmployerContact[]
+  employees       Employee[]
+
+  // System Fields
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdBy       String?   // Who created the record
+  lastModifiedBy  String?   // Who last modified the record
+
+  @@index([employerType])
+  @@index([industry])
+  @@index([relationshipType])
+  @@index([status])
+  @@index([country, city])
+  @@index([establishedYear])
+  @@index([employeeCount])
+}
+
+model EmployerContact {
+  id              Int       @id @default(autoincrement())
+  employerId      Int
+  employer        Employer  @relation(fields: [employerId], references: [id], onDelete: Cascade)
+
+  // Personal Information
+  firstName       String
+  middleName      String?
+  lastName        String
+  fullName        String?   // Auto-generated full name
+  preferredName   String?
+  jobTitle        String?
+  department      String?   // HR, Finance, Operations, Legal, IT, Sales, Marketing, etc.
+  level           String?   // ENTRY, MIDDLE, SENIOR, EXECUTIVE, C_LEVEL
+
+  // Contact Information
+  workEmail       String?
+  personalEmail   String?
+  workPhone       String?
+  mobilePhone     String?
+  directLine      String?
+  extension       String?
+  whatsappNumber  String?
+  skypeId         String?
+  linkedinProfile String?
+
+  // Professional Details
+  reportsTo       String?   // Who they report to
+  yearsAtCompany  Int?      // Years at this company
+  totalExperience Int?      // Total years of experience
+  education       String?   // Educational background
+  certifications  String?   // JSON array of professional certifications
+
+  // Role & Responsibilities
+  isPrimary       Boolean   @default(false) // Primary contact for this employer
+  responsibilities String?  // JSON array of responsibilities
+  decisionAuthority String? // What they can approve/decide
+  budgetAuthority Float?    // Budget authority amount
+  signatoryPower  Boolean   @default(false) // Can sign contracts
+
+  // Contact Preferences
+  preferredContact String   @default("EMAIL") // EMAIL, PHONE, WHATSAPP, VIDEO_CALL
+  preferredTime   String?   // Best time to contact
+  timeZone        String?   // Their time zone
+  workingHours    String?   // JSON object with working schedule
+  availabilityNotes String? // Availability notes
+
+  // Communication Style
+  communicationStyle String? // FORMAL, INFORMAL, DIRECT, DIPLOMATIC
+  languages       String?   // JSON array of languages spoken
+  culturalNotes   String?   // Cultural considerations
+  personalInterests String? // JSON array of personal interests
+
+  // Relationship Management
+  relationshipStrength String? @default("NEUTRAL") // STRONG, GOOD, NEUTRAL, WEAK, POOR
+  lastContact     DateTime? // Last contact date
+  contactFrequency String?  // How often to contact
+  personalNotes   String?   // Personal notes about the contact
+  birthDate       DateTime? // Birthday (for relationship building)
+
+  // Emergency & Backup
+  isEmergencyContact Boolean @default(false) // Emergency contact for urgent matters
+  backupContact   String?   // Backup contact information
+  outOfOfficeDelegate String? // Who handles their duties when absent
+
+  // Performance & Ratings
+  responsivenessRating Float? // How responsive they are (1-5)
+  helpfulnessRating Float?    // How helpful they are (1-5)
+  professionalismRating Float? // Professionalism rating (1-5)
+  knowledgeRating Float?      // Knowledge/expertise rating (1-5)
+
+  // Internal Assessment
+  influenceLevel  String?   @default("MEDIUM") // LOW, MEDIUM, HIGH, VERY_HIGH
+  cooperationLevel String?  @default("GOOD") // EXCELLENT, GOOD, AVERAGE, POOR
+  negotiationStyle String?  // COLLABORATIVE, COMPETITIVE, ACCOMMODATING, AVOIDING
+  decisionMakingStyle String? // ANALYTICAL, DIRECTIVE, CONCEPTUAL, BEHAVIORAL
+
+  // Access & Permissions
+  hasSystemAccess Boolean  @default(false) // Do they have access to our systems
+  accessLevel     String?  // Level of access if any
+  securityClearance String? // Security clearance level
+  ndaSigned       Boolean  @default(false) // Has signed NDA
+
+  // Status & Tracking
+  status          String    @default("ACTIVE") // ACTIVE, INACTIVE, ON_LEAVE, TERMINATED, TRANSFERRED
+  startDate       DateTime? // When they started in this role
+  endDate         DateTime? // When they left (if applicable)
+  replacedBy      String?   // Who replaced them
+
+  // Meeting & Interaction History
+  lastMeetingDate DateTime? // Last face-to-face/video meeting
+  meetingFrequency String?  // How often we meet
+  preferredMeetingType String? // IN_PERSON, VIDEO_CALL, PHONE_CALL
+  meetingNotes    String?   // Notes from meetings
+
+  // Special Information
+  specialRequirements String? // Any special requirements
+  accessibilityNeeds String?  // Accessibility needs
+  dietaryRestrictions String? // For business meals/events
+  allergies       String?     // Allergies to be aware of
+
+  // System Fields
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdBy       String?   // Who created the record
+  lastModifiedBy  String?   // Who last modified the record
+
+  @@index([department])
+  @@index([level])
+  @@index([isPrimary])
+  @@index([status])
+}
+
+model Passport {
+  id              Int       @id @default(autoincrement())
+
+  // Owner Information (Polymorphic relationship)
+  ownerType       String    // EMPLOYEE, EMPLOYER, STAKEHOLDER
+  ownerId         Int       // ID from Employee, Employer, or Stakeholder table
+  ownerName       String    // Full name for display
+  ownerEmail      String?   // Email for reference
+  ownerNationality String?  // Owner's nationality
+
+  // Passport Information
+  passportNumber  String    @unique // Passport number
+  issuingCountry  String    // Country that issued the passport
+  countryIcon     String?   // Flag emoji or icon identifier
+  issuanceDate    DateTime  // Date passport was issued
+  expiryDate      DateTime  // Date passport expires
+  issueLocation   String?   // City/Place where passport was issued
+  passportType    String?   @default("REGULAR") // REGULAR, DIPLOMATIC, OFFICIAL, SERVICE, EMERGENCY
+
+  // Personal Information (from passport)
+  firstNameOnPassport String  // First name as shown on passport
+  lastNameOnPassport  String  // Last name as shown on passport
+  fullNameOnPassport  String? // Full name as shown on passport
+  dateOfBirth     DateTime? // Date of birth from passport
+  placeOfBirth    String?   // Place of birth from passport
+  gender          String?   // Gender from passport
+  height          String?   // Height if shown on passport
+  eyeColor        String?   // Eye color if shown
+
+  // Passport Status
+  status          String    @default("ACTIVE") // ACTIVE, EXPIRED, LOST, STOLEN, CANCELLED, DAMAGED
+  isActive        Boolean   @default(true)     // Currently valid passport
+
+  // Physical Passport Location Tracking
+  currentLocation String    @default("WITH_OWNER") // WITH_OWNER, AT_OFFICE, AT_HOME, WITH_MAIN_REPRESENTATIVE, WITH_MINOR_REPRESENTATIVE, AT_EMBASSY, IN_TRANSIT, LOST, UNKNOWN
+  locationDetails String?   // Additional location details
+  lastLocationUpdate DateTime @default(now()) // When location was last updated
+  locationNotes   String?   // Notes about current location
+
+  // Location History
+  locationHistory PassportLocationHistory[]
+
+  // Representative Information
+  withMainRepresentative    Boolean  @default(false) // Is with main representative
+  mainRepresentativeName    String?  // Name of main representative
+  mainRepresentativeContact String?  // Contact of main representative
+  mainRepresentativeNotes   String?  // Notes about main representative
+
+  withMinorRepresentative   Boolean  @default(false) // Is with minor representative
+  minorRepresentativeName   String?  // Name of minor representative
+  minorRepresentativeContact String? // Contact of minor representative
+  minorRepresentativeNotes  String?  // Notes about minor representative
+
+  // Security Features (for verification)
+  machineReadableZone String? // MRZ data
+  chipEnabled        Boolean  @default(false) // Has electronic chip
+  biometricData      Boolean  @default(false) // Contains biometric data
+  securityFeatures   String? // JSON array of security features
+
+  // Visa Pages & Stamps
+  totalPages         Int?     @default(32) // Total number of pages
+  usedPages          Int?     @default(0)  // Number of pages used
+  availablePages     Int?     // Pages available for visas
+  lastStampDate      DateTime? // Date of last entry/exit stamp
+  lastStampCountry   String?   // Country of last stamp
+
+  // Renewal Information
+  renewalEligible    Boolean  @default(false) // Eligible for renewal
+  renewalBefore      DateTime? // Should renew before this date
+  renewalProcess     String?   // Renewal process notes
+  renewalLocation    String?   // Where to renew
+  renewalFee         Float?    // Renewal fee amount
+  renewalFeeCurrency String?   @default("USD") // Renewal fee currency
+
+  // Emergency Information
+  emergencyContact   String?   // Emergency contact information
+  bloodType          String?   // Blood type
+  medicalConditions  String?   // Medical conditions/allergies
+  emergencyNotes     String?   // Emergency notes
+
+  // Documents & Verification
+  photoPath          String?   // Path to passport photo
+  scannedCopyPath    String?   // Path to scanned copy
+  verificationStatus String?   @default("PENDING") // PENDING, VERIFIED, INVALID, SUSPICIOUS
+  verifiedBy         String?   // Who verified the passport
+  verificationDate   DateTime? // When verification was done
+  verificationNotes  String?   // Verification notes
+
+  // Travel Information
+  lastTravelDate     DateTime? // Last travel date
+  frequentDestinations String? // JSON array of frequent destinations
+  travelRestrictions String?   // Any travel restrictions
+  visaHistory        String?   // JSON array of visa history
+
+  // Administrative
+  submittedBy        String?   // Who submitted the passport info
+  reviewedBy         String?   // Who reviewed the information
+  approvedBy         String?   // Who approved the passport
+  rejectionReason    String?   // Reason for rejection if any
+
+  // Internal Notes
+  publicNotes        String?   // Notes visible to all staff
+  privateNotes       String?   // Private notes for management only
+  alerts             String?   // JSON array of alerts/warnings
+  tags               String?   // JSON array of tags for categorization
+
+  // Compliance & Legal
+  legalIssues        String?   // Any legal issues with the passport
+  restrictions       String?   // Travel restrictions or limitations
+  watchlistStatus    String?   // Watchlist status if any
+  sanctionsCheck     Boolean   @default(false) // Sanctions check completed
+
+  // System Fields
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  createdBy          String?   // Who created the record
+  lastModifiedBy     String?   // Who last modified the record
+
+  @@index([ownerType, ownerId])
+  @@index([passportNumber])
+  @@index([issuingCountry])
+  @@index([expiryDate])
+  @@index([status])
+  @@index([currentLocation])
+  @@index([isActive])
+}
+
+model PassportLocationHistory {
+  id              Int       @id @default(autoincrement())
+  passportId      Int
+  passport        Passport  @relation(fields: [passportId], references: [id], onDelete: Cascade)
+
+  // Location Change Information
+  fromLocation    String?   // Previous location
+  toLocation      String    // New location
+  changeDate      DateTime  @default(now()) // When location changed
+  changedBy       String?   // Who made the change
+
+  // Change Details
+  changeReason    String?   // Reason for location change
+  authorizedBy    String?   // Who authorized the change
+  receivedBy      String?   // Who received the passport
+  handedBy        String?   // Who handed over the passport
+
+  // Tracking Information
+  trackingNumber  String?   // Tracking number if in transit
+  carrier         String?   // Carrier/courier if applicable
+  estimatedDelivery DateTime? // Expected delivery date
+  actualDelivery  DateTime? // Actual delivery date
+
+  // Verification
+  deliveryConfirmed Boolean @default(false) // Delivery confirmed
+  signedBy        String?   // Who signed for receipt
+  photoEvidence   String?   // Path to photo evidence
+
+  // Notes
+  notes           String?   // Additional notes about the transfer
+  urgency         String?   @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+
+  // System Fields
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([passportId])
+  @@index([changeDate])
+}
+

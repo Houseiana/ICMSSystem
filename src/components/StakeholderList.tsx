@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Button } from '@/components/ui/button'
+
 import { Edit, Trash2, Mail, Phone, Briefcase, Heart, Users } from 'lucide-react'
 
 interface Stakeholder {
@@ -194,22 +194,18 @@ export default function StakeholderList({
                 </td>
                 <td className="py-4 px-4 text-right">
                   <div className="flex items-center justify-end space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    <button
                       onClick={() => onEdit(stakeholder)}
                       className="p-2 hover:bg-blue-100"
                     >
                       <Edit className="w-4 h-4 text-blue-600" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    </button>
+                    <button
                       onClick={() => handleDelete(stakeholder.id)}
                       className="p-2 hover:bg-red-100"
                     >
                       <Trash2 className="w-4 h-4 text-red-600" />
-                    </Button>
+                    </button>
                   </div>
                 </td>
               </tr>

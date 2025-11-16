@@ -29,33 +29,33 @@ const menuItems = [
   },
   {
     icon: '🏢',
-    label: 'Departments',
-    path: '/dashboard/departments',
-    description: 'Department management'
+    label: 'Employers',
+    path: '/dashboard/employers',
+    description: 'Manage employer companies and contacts'
   },
   {
-    icon: '📝',
-    label: 'Attendance',
-    path: '/dashboard/attendance',
-    description: 'Time tracking'
+    icon: '🤝🏢',
+    label: 'Contractors',
+    path: '/dashboard/contractors',
+    description: 'Manage contractors and service providers'
   },
   {
-    icon: '🏖️',
-    label: 'Leave Requests',
-    path: '/dashboard/leave',
-    description: 'Leave management'
+    icon: '🛠️👥',
+    label: 'Task Helpers',
+    path: '/dashboard/task-helpers',
+    description: 'Manage task helpers and personal assistants'
   },
   {
-    icon: '💰',
-    label: 'Payroll',
-    path: '/dashboard/payroll',
-    description: 'Salary and payments'
+    icon: '📄✈️',
+    label: 'Visas',
+    path: '/dashboard/visas',
+    description: 'Manage visa applications and status'
   },
   {
-    icon: '📋',
-    label: 'Evaluations',
-    path: '/dashboard/evaluations',
-    description: 'Performance reviews'
+    icon: '📘🆔',
+    label: 'Passports',
+    path: '/dashboard/passports',
+    description: 'Manage passports and track locations'
   },
   {
     icon: '⚙️',

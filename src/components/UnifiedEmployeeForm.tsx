@@ -2,6 +2,13 @@
 
 import React, { Component } from 'react'
 
+interface Employer {
+  id: number
+  employerType: string
+  displayName: string
+  description: string
+}
+
 interface EmployeeFormProps {
   isOpen: boolean
   onClose: () => void
@@ -34,6 +41,7 @@ interface FormState {
     lastName: string
     email: string
     department: string
+    employerId: string
     position: string
     hireDate: string
     // Personal Information (OPTIONAL)
@@ -130,6 +138,8 @@ interface FormState {
   hasChildren: boolean
   numberOfChildren: number
   children: ChildInfo[]
+  employers: Employer[]
+  loadingEmployers: boolean
 }
 
 export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, FormState> {
@@ -144,6 +154,7 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
         lastName: '',
         email: '',
         department: '',
+        employerId: '',
         position: '',
         hireDate: '',
         // Personal Information (OPTIONAL)
@@ -239,7 +250,28 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
       },
       hasChildren: false,
       numberOfChildren: 0,
-      children: []
+      children: [],
+      employers: [],
+      loadingEmployers: false
+    }
+  }
+
+  componentDidMount() {
+    this.fetchEmployers()
+  }
+
+  fetchEmployers = async () => {
+    try {
+      this.setState({ loadingEmployers: true })
+      const response = await fetch('/api/employers/list')
+      if (response.ok) {
+        const data = await response.json()
+        this.setState({ employers: data.employers || [] })
+      }
+    } catch (error) {
+      console.error('Error fetching employers:', error)
+    } finally {
+      this.setState({ loadingEmployers: false })
     }
   }
 
@@ -304,6 +336,7 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
         certifications: employee.certifications || '',
         skills: employee.skills || '',
         department: employee.department?.name || '',
+        employerId: employee.employerId?.toString() || '',
         position: employee.position?.title || '',
         salary: employee.salary?.toString() || '',
         currency: employee.currency || 'USD',
@@ -363,6 +396,7 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
         lastName: '',
         email: '',
         department: '',
+        employerId: '',
         position: '',
         hireDate: '',
         middleName: '',
@@ -610,6 +644,47 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
                         <option key={pos} value={pos}>{pos}</option>
                       ))}
                     </select>
+                  </div>
+                  <div className="md:col-span-3">
+                    <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+                      <label className="block text-sm font-bold text-blue-800 mb-2 flex items-center">
+                        🏢 Select Employee's Employer *
+                      </label>
+                      <select
+                        name="employerId"
+                        value={formData.employerId}
+                        onChange={this.handleChange}
+                        disabled={mode === 'view'}
+                        required
+                        className="w-full px-4 py-3 border-2 border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800 font-medium disabled:bg-gray-50"
+                      >
+                        <option value="">🏢 Choose Employer (Company or Individual)</option>
+                        {this.state.loadingEmployers ? (
+                          <option value="" disabled>⏳ Loading employers...</option>
+                        ) : (
+                          this.state.employers.map(employer => (
+                            <option key={employer.id} value={employer.id}>
+                              {employer.employerType === 'COMPANY' ? '🏢' : '👤'} {employer.displayName} - {employer.description}
+                            </option>
+                          ))
+                        )}
+                      </select>
+                      {this.state.employers.length === 0 && !this.state.loadingEmployers && (
+                        <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
+                          <p className="text-sm text-red-700 font-medium">
+                            ⚠️ No employers found! Please add employers first:
+                          </p>
+                          <p className="text-xs text-red-600 mt-1">
+                            Go to Dashboard → Employers → Add New Employer
+                          </p>
+                        </div>
+                      )}
+                      {this.state.employers.length > 0 && (
+                        <p className="text-xs text-blue-600 mt-1">
+                          ℹ️ Found {this.state.employers.length} employer(s) available for selection
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Hire Date *</label>
