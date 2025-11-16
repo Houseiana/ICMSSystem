@@ -219,7 +219,7 @@ export class PrismaVisaRepository implements IVisaRepository {
           gte: new Date(),
           lte: futureDate
         },
-        status: {
+        visaStatus: {
           not: 'EXPIRED'
         }
       },
