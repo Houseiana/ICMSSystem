@@ -1,6 +1,7 @@
 'use client'
 
 import React, { Component } from 'react'
+import { FamilyMemberSelector } from './FamilyMemberSelector'
 
 interface Employer {
   id: number
@@ -141,6 +142,10 @@ interface FormState {
     spousePhone: string
     spouseNationalId: string
   }
+  // Stakeholder IDs for family members (when selected from stakeholders)
+  fatherStakeholderId?: number
+  motherStakeholderId?: number
+  spouseStakeholderId?: number
   hasChildren: boolean
   numberOfChildren: number
   children: ChildInfo[]
@@ -583,6 +588,63 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
         ...this.state.formData,
         [e.target.name]: e.target.value
       }
+    })
+  }
+
+  // Handler for father data changes from FamilyMemberSelector
+  handleFatherDataChange = (data: any, stakeholderId?: number) => {
+    this.setState({
+      formData: {
+        ...this.state.formData,
+        fatherFirstName: data.firstName,
+        fatherMiddleName: data.middleName,
+        fatherLastName: data.lastName,
+        fatherDateOfBirth: data.dateOfBirth,
+        fatherPlaceOfBirth: data.placeOfBirth,
+        fatherNationality: data.nationality,
+        fatherOccupation: data.occupation,
+        fatherPhone: data.phone,
+        fatherNationalId: data.nationalId
+      },
+      fatherStakeholderId: stakeholderId
+    })
+  }
+
+  // Handler for mother data changes from FamilyMemberSelector
+  handleMotherDataChange = (data: any, stakeholderId?: number) => {
+    this.setState({
+      formData: {
+        ...this.state.formData,
+        motherFirstName: data.firstName,
+        motherMiddleName: data.middleName,
+        motherLastName: data.lastName,
+        motherDateOfBirth: data.dateOfBirth,
+        motherPlaceOfBirth: data.placeOfBirth,
+        motherNationality: data.nationality,
+        motherOccupation: data.occupation,
+        motherPhone: data.phone,
+        motherNationalId: data.nationalId
+      },
+      motherStakeholderId: stakeholderId
+    })
+  }
+
+  // Handler for spouse data changes from FamilyMemberSelector
+  handleSpouseDataChange = (data: any, stakeholderId?: number) => {
+    this.setState({
+      formData: {
+        ...this.state.formData,
+        spouseFirstName: data.firstName,
+        spouseMiddleName: data.middleName,
+        spouseLastName: data.lastName,
+        spouseDateOfBirth: data.dateOfBirth,
+        spousePlaceOfBirth: data.placeOfBirth,
+        spouseNationality: data.nationality,
+        spouseOccupation: data.occupation,
+        spousePhone: data.phone,
+        spouseNationalId: data.nationalId
+      },
+      spouseStakeholderId: stakeholderId
     })
   }
 
@@ -1059,90 +1121,76 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
                   <span className="mr-2">👨‍👩‍👧‍👦</span> Family Information <span className="ml-2 text-sm text-green-600">(Optional)</span>
                 </h3>
 
-                {/* Father Details */}
-                <div className="mb-6 bg-blue-50 p-4 rounded-lg">
-                  <h4 className="text-md font-semibold text-blue-800 mb-3">Father Details</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                      <input type="text" name="fatherFirstName" value={formData.fatherFirstName} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                      <input type="text" name="fatherLastName" value={formData.fatherLastName} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
-                      <input type="text" name="fatherNationality" value={formData.fatherNationality} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-                      <input type="date" name="fatherDateOfBirth" value={formData.fatherDateOfBirth} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Place of Birth</label>
-                      <input type="text" name="fatherPlaceOfBirth" value={formData.fatherPlaceOfBirth} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" placeholder="City, Country" />
-                    </div>
-                  </div>
-                </div>
+                {/* Father Details with Stakeholder Selection */}
+                <FamilyMemberSelector
+                  title="Father Details"
+                  memberType="father"
+                  data={{
+                    firstName: formData.fatherFirstName,
+                    middleName: formData.fatherMiddleName,
+                    lastName: formData.fatherLastName,
+                    dateOfBirth: formData.fatherDateOfBirth,
+                    placeOfBirth: formData.fatherPlaceOfBirth,
+                    nationality: formData.fatherNationality,
+                    occupation: formData.fatherOccupation,
+                    phone: formData.fatherPhone,
+                    nationalId: formData.fatherNationalId
+                  }}
+                  disabled={mode === 'view'}
+                  onDataChange={this.handleFatherDataChange}
+                />
 
-                {/* Mother Details */}
-                <div className="mb-6 bg-pink-50 p-4 rounded-lg">
-                  <h4 className="text-md font-semibold text-pink-800 mb-3">Mother Details</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                      <input type="text" name="motherFirstName" value={formData.motherFirstName} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                      <input type="text" name="motherLastName" value={formData.motherLastName} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
-                      <input type="text" name="motherNationality" value={formData.motherNationality} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-                      <input type="date" name="motherDateOfBirth" value={formData.motherDateOfBirth} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Place of Birth</label>
-                      <input type="text" name="motherPlaceOfBirth" value={formData.motherPlaceOfBirth} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" placeholder="City, Country" />
-                    </div>
-                  </div>
-                </div>
+                {/* Mother Details with Stakeholder Selection */}
+                <FamilyMemberSelector
+                  title="Mother Details"
+                  memberType="mother"
+                  data={{
+                    firstName: formData.motherFirstName,
+                    middleName: formData.motherMiddleName,
+                    lastName: formData.motherLastName,
+                    dateOfBirth: formData.motherDateOfBirth,
+                    placeOfBirth: formData.motherPlaceOfBirth,
+                    nationality: formData.motherNationality,
+                    occupation: formData.motherOccupation,
+                    phone: formData.motherPhone,
+                    nationalId: formData.motherNationalId
+                  }}
+                  disabled={mode === 'view'}
+                  onDataChange={this.handleMotherDataChange}
+                />
 
-                {/* Spouse Details */}
-                <div className="mb-6 bg-purple-50 p-4 rounded-lg">
-                  <h4 className="text-md font-semibold text-purple-800 mb-3">Spouse Details</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                      <input type="text" name="spouseFirstName" value={formData.spouseFirstName} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                      <input type="text" name="spouseLastName" value={formData.spouseLastName} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
-                      <input type="text" name="spouseNationality" value={formData.spouseNationality} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-                      <input type="date" name="spouseDateOfBirth" value={formData.spouseDateOfBirth} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Place of Birth</label>
-                      <input type="text" name="spousePlaceOfBirth" value={formData.spousePlaceOfBirth} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" placeholder="City, Country" />
-                    </div>
-                    <div>
+                {/* Spouse Details with Stakeholder Selection */}
+                <FamilyMemberSelector
+                  title="Spouse Details"
+                  memberType="spouse"
+                  data={{
+                    firstName: formData.spouseFirstName,
+                    middleName: formData.spouseMiddleName,
+                    lastName: formData.spouseLastName,
+                    dateOfBirth: formData.spouseDateOfBirth,
+                    placeOfBirth: formData.spousePlaceOfBirth,
+                    nationality: formData.spouseNationality,
+                    occupation: formData.spouseOccupation,
+                    phone: formData.spousePhone,
+                    nationalId: formData.spouseNationalId
+                  }}
+                  disabled={mode === 'view'}
+                  onDataChange={this.handleSpouseDataChange}
+                  additionalFields={
+                    <div className="mt-4">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Date of Marriage</label>
-                      <input type="date" name="spouseDateOfMarriage" value={formData.spouseDateOfMarriage} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                      <input
+                        type="date"
+                        value={formData.spouseDateOfMarriage}
+                        onChange={(e) => this.setState({
+                          formData: { ...formData, spouseDateOfMarriage: e.target.value }
+                        })}
+                        disabled={mode === 'view'}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                      />
                     </div>
-                  </div>
-                </div>
+                  }
+                />
               </div>
 
               {/* Travel History */}
