@@ -237,7 +237,18 @@ export default function StakeholdersPage() {
                     phone: formData.get('phone'),
                     gender: formData.get('gender'),
                     occupation: formData.get('occupation'),
-                    dateOfBirth: formData.get('dateOfBirth') || null
+                    dateOfBirth: formData.get('dateOfBirth') || null,
+                    nationality: formData.get('nationality') || null,
+                    passportNumber: formData.get('passportNumber') || null,
+                    passportExpiry: formData.get('passportExpiry') || null,
+                    passportIssuingCountry: formData.get('passportIssuingCountry') || null,
+                    visaStatus: formData.get('visaStatus') || null,
+                    visaType: formData.get('visaType') || null,
+                    visaNumber: formData.get('visaNumber') || null,
+                    visaValidFrom: formData.get('visaValidFrom') || null,
+                    visaValidTo: formData.get('visaValidTo') || null,
+                    visaCategory: formData.get('visaCategory') || null,
+                    visaEntries: formData.get('visaEntries') || null
                   })
                 })
 
@@ -298,6 +309,87 @@ export default function StakeholdersPage() {
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
+
+              {/* Travel Information Section */}
+              <div className="mt-6">
+                <h4 className="text-md font-semibold mb-3">Travel Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input
+                    name="nationality"
+                    placeholder="Nationality"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <input
+                    name="passportNumber"
+                    placeholder="Passport Number"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <input
+                    name="passportExpiry"
+                    type="date"
+                    placeholder="Passport Expiration"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <input
+                    name="passportIssuingCountry"
+                    placeholder="Passport Issuing Country"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <select
+                    name="visaStatus"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Visa Status</option>
+                    <option value="HAS_VISA">Has Visa</option>
+                    <option value="NO_VISA">No Visa</option>
+                    <option value="NEEDS_VISA">Needs Visa</option>
+                    <option value="UNDER_PROCESS">Under Process</option>
+                  </select>
+                  <select
+                    name="visaType"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Visa Type</option>
+                    <option value="TOURIST">Tourist</option>
+                    <option value="BUSINESS">Business</option>
+                    <option value="WORK">Work</option>
+                    <option value="STUDENT">Student</option>
+                    <option value="RESIDENCE">Residence</option>
+                    <option value="TRANSIT">Transit</option>
+                  </select>
+                  <input
+                    name="visaNumber"
+                    placeholder="Visa Number"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <input
+                    name="visaValidFrom"
+                    type="date"
+                    placeholder="Visa Valid From"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <input
+                    name="visaValidTo"
+                    type="date"
+                    placeholder="Visa Valid Until"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <input
+                    name="visaCategory"
+                    placeholder="Visa Category (e.g., B1/B2, H1B)"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <select
+                    name="visaEntries"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Entry Type</option>
+                    <option value="SINGLE">Single Entry</option>
+                    <option value="MULTIPLE">Multiple Entries</option>
+                  </select>
+                </div>
+              </div>
+
               <div className="flex space-x-3 mt-4">
                 <button
                   type="submit"

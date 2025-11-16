@@ -66,6 +66,20 @@ export async function PUT(
       employerData.fullName = `${employerData.firstName}${employerData.middleName ? ' ' + employerData.middleName : ''} ${employerData.lastName}`.trim()
     }
 
+    // Convert date strings to Date objects
+    if (employerData.dateOfBirth) {
+      employerData.dateOfBirth = new Date(employerData.dateOfBirth)
+    }
+    if (employerData.passportExpiry) {
+      employerData.passportExpiry = new Date(employerData.passportExpiry)
+    }
+    if (employerData.visaValidFrom) {
+      employerData.visaValidFrom = new Date(employerData.visaValidFrom)
+    }
+    if (employerData.visaValidTo) {
+      employerData.visaValidTo = new Date(employerData.visaValidTo)
+    }
+
     // Update employer
     const employer = await prisma.employer.update({
       where: { id },

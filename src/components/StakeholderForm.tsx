@@ -55,6 +55,15 @@ export default function StakeholderForm({
     country: '',
     nationalId: '',
     passportNumber: '',
+    passportExpiry: '',
+    passportIssuingCountry: '',
+    visaStatus: '',
+    visaType: '',
+    visaNumber: '',
+    visaValidFrom: '',
+    visaValidTo: '',
+    visaCategory: '',
+    visaEntries: '',
     occupation: '',
     employer: '',
     workAddress: '',
@@ -62,6 +71,15 @@ export default function StakeholderForm({
     medicalConditions: '',
     allergies: '',
     notes: '',
+    maritalStatus: '',
+    languages: '',
+    photoUrl: '',
+    qidDocumentUrl: '',
+    passportDocumentUrl: '',
+    qidNumber: '',
+    qidIssueDate: '',
+    qidExpiryDate: '',
+    qidLocation: '',
     spouseId: '',
     fatherId: '',
     motherId: ''
@@ -98,6 +116,15 @@ export default function StakeholderForm({
         country: '',
         nationalId: '',
         passportNumber: '',
+        passportExpiry: '',
+        passportIssuingCountry: '',
+        visaStatus: '',
+        visaType: '',
+        visaNumber: '',
+        visaValidFrom: '',
+        visaValidTo: '',
+        visaCategory: '',
+        visaEntries: '',
         occupation: stakeholder.occupation || '',
         employer: '',
         workAddress: '',
@@ -105,6 +132,15 @@ export default function StakeholderForm({
         medicalConditions: '',
         allergies: '',
         notes: '',
+        maritalStatus: '',
+        languages: '',
+        photoUrl: '',
+        qidDocumentUrl: '',
+        passportDocumentUrl: '',
+        qidNumber: '',
+        qidIssueDate: '',
+        qidExpiryDate: '',
+        qidLocation: '',
         spouseId: stakeholder.spouse?.id.toString() || '',
         fatherId: '',
         motherId: ''
@@ -130,6 +166,15 @@ export default function StakeholderForm({
         country: '',
         nationalId: '',
         passportNumber: '',
+        passportExpiry: '',
+        passportIssuingCountry: '',
+        visaStatus: '',
+        visaType: '',
+        visaNumber: '',
+        visaValidFrom: '',
+        visaValidTo: '',
+        visaCategory: '',
+        visaEntries: '',
         occupation: '',
         employer: '',
         workAddress: '',
@@ -137,6 +182,15 @@ export default function StakeholderForm({
         medicalConditions: '',
         allergies: '',
         notes: '',
+        maritalStatus: '',
+        languages: '',
+        photoUrl: '',
+        qidDocumentUrl: '',
+        passportDocumentUrl: '',
+        qidNumber: '',
+        qidIssueDate: '',
+        qidExpiryDate: '',
+        qidLocation: '',
         spouseId: '',
         fatherId: '',
         motherId: ''
@@ -345,6 +399,184 @@ export default function StakeholderForm({
                     <option value="OTHER">Other</option>
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Place of Birth
+                  </label>
+                  <input
+                    type="text"
+                    name="placeOfBirth"
+                    value={formData.placeOfBirth}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="City, Country"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Marital Status
+                  </label>
+                  <select
+                    name="maritalStatus"
+                    value={formData.maritalStatus}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select Status</option>
+                    <option value="SINGLE">Single</option>
+                    <option value="MARRIED">Married</option>
+                    <option value="DIVORCED">Divorced</option>
+                    <option value="WIDOWED">Widowed</option>
+                    <option value="SEPARATED">Separated</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Blood Group
+                  </label>
+                  <select
+                    name="bloodGroup"
+                    value={formData.bloodGroup}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select Blood Group</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Religion
+                  </label>
+                  <input
+                    type="text"
+                    name="religion"
+                    value={formData.religion}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Languages (comma-separated)
+                  </label>
+                  <input
+                    type="text"
+                    name="languages"
+                    value={formData.languages}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., English, Arabic, French"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Documents & Photos */}
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Documents & Photos</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Personal Photo URL (Dropbox Link)
+                  </label>
+                  <input
+                    type="url"
+                    name="photoUrl"
+                    value={formData.photoUrl}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="https://www.dropbox.com/..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    QID Document URL (Dropbox Link)
+                  </label>
+                  <input
+                    type="url"
+                    name="qidDocumentUrl"
+                    value={formData.qidDocumentUrl}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="https://www.dropbox.com/..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Passport Document URL (Dropbox Link)
+                  </label>
+                  <input
+                    type="url"
+                    name="passportDocumentUrl"
+                    value={formData.passportDocumentUrl}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="https://www.dropbox.com/..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* QID Information */}
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">QID (Qatar ID) Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    QID Number
+                  </label>
+                  <input
+                    type="text"
+                    name="qidNumber"
+                    value={formData.qidNumber}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    QID Issue Location
+                  </label>
+                  <input
+                    type="text"
+                    name="qidLocation"
+                    value={formData.qidLocation}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    QID Issue Date
+                  </label>
+                  <input
+                    type="date"
+                    name="qidIssueDate"
+                    value={formData.qidIssueDate}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    QID Expiry Date
+                  </label>
+                  <input
+                    type="date"
+                    name="qidExpiryDate"
+                    value={formData.qidExpiryDate}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
               </div>
             </div>
 
@@ -445,6 +677,161 @@ export default function StakeholderForm({
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Travel Information */}
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Travel Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nationality
+                  </label>
+                  <input
+                    type="text"
+                    name="nationality"
+                    value={formData.nationality}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Passport Number
+                  </label>
+                  <input
+                    type="text"
+                    name="passportNumber"
+                    value={formData.passportNumber}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Passport Expiration
+                  </label>
+                  <input
+                    type="date"
+                    name="passportExpiry"
+                    value={formData.passportExpiry}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Passport Issuing Country
+                  </label>
+                  <input
+                    type="text"
+                    name="passportIssuingCountry"
+                    value={formData.passportIssuingCountry}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Visa Status
+                  </label>
+                  <select
+                    name="visaStatus"
+                    value={formData.visaStatus}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select Status</option>
+                    <option value="VALID">Valid</option>
+                    <option value="EXPIRED">Expired</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="NOT_REQUIRED">Not Required</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Visa Type
+                  </label>
+                  <select
+                    name="visaType"
+                    value={formData.visaType}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select Type</option>
+                    <option value="TOURIST">Tourist</option>
+                    <option value="BUSINESS">Business</option>
+                    <option value="WORK">Work</option>
+                    <option value="STUDENT">Student</option>
+                    <option value="RESIDENCE">Residence</option>
+                    <option value="TRANSIT">Transit</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Visa Number
+                  </label>
+                  <input
+                    type="text"
+                    name="visaNumber"
+                    value={formData.visaNumber}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Visa Valid From
+                  </label>
+                  <input
+                    type="date"
+                    name="visaValidFrom"
+                    value={formData.visaValidFrom}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Valid Until (Visa Expiry)
+                  </label>
+                  <input
+                    type="date"
+                    name="visaValidTo"
+                    value={formData.visaValidTo}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Visa Category
+                  </label>
+                  <input
+                    type="text"
+                    name="visaCategory"
+                    value={formData.visaCategory}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., B1/B2, H1B, F1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Entry Type
+                  </label>
+                  <select
+                    name="visaEntries"
+                    value={formData.visaEntries}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select Entry Type</option>
+                    <option value="SINGLE">Single Entry</option>
+                    <option value="MULTIPLE">Multiple Entries</option>
+                  </select>
                 </div>
               </div>
             </div>

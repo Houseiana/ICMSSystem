@@ -58,6 +58,12 @@ const menuItems = [
     description: 'Manage passports and track locations'
   },
   {
+    icon: '✈️',
+    label: 'Travel Management',
+    path: '/travel',
+    description: 'Manage travel requests and itineraries'
+  },
+  {
     icon: '⚙️',
     label: 'Settings',
     path: '/dashboard/settings',

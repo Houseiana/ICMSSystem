@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/infrastructure/database/prisma/client'
+import { fetchPersonDetails } from '@/lib/utils/personHelper'
 
 export async function GET(
   request: NextRequest,

@@ -90,6 +90,11 @@ model Employee {
   qidExpiryDate   DateTime?
   qidLocation     String?          // Where QID was issued
 
+  // Document Links (Dropbox URLs)
+  photoUrl        String?          // Personal photo URL
+  qidDocumentUrl  String?          // QID document scan/photo URL
+  passportDocumentUrl String?      // Passport document scan/photo URL
+
   // Emergency Contact
   emergencyContact1Name  String?
   emergencyContact1Relation String?
@@ -265,8 +270,10 @@ model Stakeholder {
   dateOfBirth     DateTime?
   placeOfBirth    String?
   gender          String?   // MALE, FEMALE, OTHER
+  maritalStatus   String?   // SINGLE, MARRIED, DIVORCED, WIDOWED, SEPARATED
   nationality     String?
   religion        String?
+  languages       String?   // JSON array of languages spoken
 
   // Address Information
   address         String?
@@ -278,12 +285,28 @@ model Stakeholder {
   // Identification
   nationalId      String?
   passportNumber  String?
+  passportExpiry  DateTime?
+  passportIssuingCountry String?
+
+  // Visa Information
+  visaStatus      String?   // VALID, EXPIRED, PENDING, NOT_REQUIRED
+  visaType        String?   // TOURIST, BUSINESS, WORK, STUDENT, RESIDENCE, etc.
+  visaNumber      String?
+  visaValidFrom   DateTime?
+  visaValidTo     DateTime?
+  visaCategory    String?   // Category/classification
+  visaEntries     String?   // SINGLE, MULTIPLE
 
   // QID (Qatar ID) Information
   qidNumber       String?          @unique
   qidIssueDate    DateTime?
   qidExpiryDate   DateTime?
   qidLocation     String?          // Where QID was issued
+
+  // Document Links (Dropbox URLs)
+  photoUrl        String?          // Personal photo URL
+  qidDocumentUrl  String?          // QID document scan/photo URL
+  passportDocumentUrl String?      // Passport document scan/photo URL
 
   // Professional Information
   occupation      String?
@@ -557,10 +580,21 @@ model TaskHelper {
   nationalId      String?
   passportNumber  String?
   passportExpiry  DateTime?
+  passportIssuingCountry String?
   drivingLicense  String?
   licenseExpiry   DateTime?
-  visaStatus      String?   // For non-citizens
-  visaExpiry      DateTime?
+  visaStatus      String?   // VALID, EXPIRED, PENDING, NOT_REQUIRED
+  visaType        String?   // TOURIST, BUSINESS, WORK, STUDENT, RESIDENCE, etc.
+  visaNumber      String?
+  visaValidFrom   DateTime?
+  visaValidTo     DateTime? // Replaces visaExpiry
+  visaCategory    String?   // Category/classification
+  visaEntries     String?   // SINGLE, MULTIPLE
+
+  // Document Links (Dropbox URLs)
+  photoUrl        String?   // Personal photo URL
+  qidDocumentUrl  String?   // QID document scan/photo URL
+  passportDocumentUrl String? // Passport document scan/photo URL
 
   // Emergency Contacts
   emergencyContact1Name     String?
@@ -668,9 +702,9 @@ model TaskHelper {
 model Visa {
   id              Int       @id @default(autoincrement())
 
-  // Person Information (Imported from Employee or Stakeholder)
-  personType      String    // EMPLOYEE, STAKEHOLDER
-  personId        Int       // ID from Employee or Stakeholder table
+  // Person Information (Imported from Employee, Employer, Stakeholder, or TaskHelper)
+  personType      String    // EMPLOYEE, EMPLOYER, STAKEHOLDER, TASK_HELPER
+  personId        Int       // ID from respective person table
   personName      String    // Full name for display
   personEmail     String?   // Email for reference
   personNationality String? // Person's nationality
@@ -681,7 +715,7 @@ model Visa {
   countryFullName String    // Full country/region name
 
   // Visa Status
-  visaStatus      String    // HAS_VISA, NO_VISA, NEEDS_VISA
+  visaStatus      String    // HAS_VISA, NO_VISA, NEEDS_VISA, UNDER_PROCESS
 
   // Visa Details (when HAS_VISA)
   visaNumber      String?   // Visa number/reference
@@ -710,6 +744,7 @@ model Visa {
   // Supporting Documents
   documentsSubmitted String? // JSON array of documents
   documentsRequired  String? // JSON array of required documents
+  visaCopyUrl     String?   // Visa copy document URL (Dropbox link)
   photoRequired   Boolean   @default(true)
   biometricsRequired Boolean @default(false)
   interviewRequired Boolean @default(false)
@@ -926,8 +961,27 @@ model Employer {
   placeOfBirth    String?   // Place of birth
   gender          String?   // MALE, FEMALE, OTHER
   maritalStatus   String?   // SINGLE, MARRIED, DIVORCED, WIDOWED, SEPARATED
+  bloodGroup      String?   // A+, B+, O+, AB+ etc.
   nationality     String?   // Nationality
+  religion        String?   // Religion
   profession      String?   // Professional occupation for individuals
+
+  // Passport & Visa Information (for Individual employers)
+  passportNumber  String?
+  passportExpiry  DateTime?
+  passportIssuingCountry String?
+  visaStatus      String?   // VALID, EXPIRED, PENDING, NOT_REQUIRED
+  visaType        String?   // TOURIST, BUSINESS, WORK, STUDENT, RESIDENCE, etc.
+  visaNumber      String?
+  visaValidFrom   DateTime?
+  visaValidTo     DateTime?
+  visaCategory    String?   // Category/classification
+  visaEntries     String?   // SINGLE, MULTIPLE
+
+  // Document Links (Dropbox URLs)
+  photoUrl        String?   // Personal photo URL (for individual employers)
+  qidDocumentUrl  String?   // QID document scan/photo URL (for individual employers)
+  passportDocumentUrl String? // Passport document scan/photo URL (for individual employers)
 
   // Registration Information
   registrationNumber String? @unique // Company registration number
@@ -1364,5 +1418,436 @@ model PassportLocationHistory {
 
   @@index([passportId])
   @@index([changeDate])
+}
+
+// ==========================================
+// TRAVEL MANAGEMENT SYSTEM
+// ==========================================
+
+model TravelRequest {
+  id              Int       @id @default(autoincrement())
+  requestNumber   String    @unique
+  createdById     Int?
+  status          String    @default("REQUEST") // REQUEST, PLANNING, CONFIRMING, EXECUTING, COMPLETED, CANCELLED
+  requestDate     DateTime  @default(now())
+  tripStartDate   DateTime?
+  tripEndDate     DateTime?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  destinations    TripDestination[]
+  flights         TripFlight[]
+  privateJets     TripPrivateJet[]
+  hotels          TripHotel[]
+  embassyServices TripEmbassyService[]
+  trains          TripTrain[]
+  rentalCarsSelfDrive TripRentalCarSelfDrive[]
+  carsWithDriver  TripCarWithDriver[]
+  events          TripEvent[]
+  passengers      TripPassenger[]
+  communications  TripCommunication[]
+  notifications   TripNotification[]
+  statusHistory   TripStatusHistory[]
+}
+
+model TripDestination {
+  id                Int     @id @default(autoincrement())
+  travelRequestId   Int
+  country           String
+  city              String
+  orderSequence     Int?
+  createdAt         DateTime @default(now())
+
+  travelRequest     TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
+}
+
+model TripFlight {
+  id                Int       @id @default(autoincrement())
+  travelRequestId   Int
+  flightNumber      String?
+  airline           String?
+  departureAirport  String?
+  arrivalAirport    String?
+  departureDate     DateTime?
+  departureTime     String?
+  arrivalDate       DateTime?
+  arrivalTime       String?
+  class             String?
+  bookingReference  String?
+  terminal          String?
+  gate              String?
+  seatNumbers       String?
+  baggageAllowance  String?
+  mealPreference    String?
+  status            String    @default("PENDING")
+  notes             String?
+  createdAt         DateTime  @default(now())
+
+  travelRequest     TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
+  passengers        TripFlightPassenger[]
+  embassyServicesArrival TripEmbassyService[] @relation("ArrivalFlight")
+  embassyServicesDeparture TripEmbassyService[] @relation("DepartureFlight")
+}
+
+model TripFlightPassenger {
+  id                Int       @id @default(autoincrement())
+  tripFlightId      Int
+  personType        String    // EMPLOYEE, STAKEHOLDER, EMPLOYER, TASK_HELPER
+  personId          Int
+  seatNumber        String?
+  mealPreference    String?
+  specialAssistance String?
+  createdAt         DateTime  @default(now())
+
+  flight            TripFlight @relation(fields: [tripFlightId], references: [id], onDelete: Cascade)
+}
+
+model TripPrivateJet {
+  id                Int       @id @default(autoincrement())
+  travelRequestId   Int
+  aircraftType      String?
+  operator          String?
+  tailNumber        String?
+  departureAirport  String?
+  arrivalAirport    String?
+  departureDate     DateTime?
+  departureTime     String?
+  arrivalDate       DateTime?
+  arrivalTime       String?
+  passengerCapacity Int?
+  amenities         String?
+  cateringDetails   String?
+  bookingReference  String?
+  status            String    @default("PENDING")
+  notes             String?
+  createdAt         DateTime  @default(now())
+
+  travelRequest     TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
+  passengers        TripPrivateJetPassenger[]
+}
+
+model TripPrivateJetPassenger {
+  id                  Int       @id @default(autoincrement())
+  tripPrivateJetId    Int
+  personType          String
+  personId            Int
+  dietaryRequirements String?
+  specialRequests     String?
+  createdAt           DateTime  @default(now())
+
+  privateJet          TripPrivateJet @relation(fields: [tripPrivateJetId], references: [id], onDelete: Cascade)
+}
+
+model TripHotel {
+  id                Int       @id @default(autoincrement())
+  travelRequestId   Int
+  hotelName         String
+  address           String?
+  city              String?
+  country           String?
+  phone             String?
+  email             String?
+  checkInDate       DateTime?
+  checkOutDate      DateTime?
+  confirmationNumber String?
+  status            String    @default("PENDING")
+  notes             String?
+  createdAt         DateTime  @default(now())
+
+  travelRequest     TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
+  rooms             TripHotelRoom[]
+}
+
+model TripHotelRoom {
+  id                Int       @id @default(autoincrement())
+  tripHotelId       Int
+  roomCategory      String    // Standard, Deluxe, Suite, etc.
+  numberOfRooms     Int
+  pricePerNight     Float?
+  createdAt         DateTime  @default(now())
+
+  hotel             TripHotel @relation(fields: [tripHotelId], references: [id], onDelete: Cascade)
+  assignments       TripRoomAssignment[]
+}
+
+model TripRoomAssignment {
+  id                Int       @id @default(autoincrement())
+  tripHotelRoomId   Int
+  personType        String
+  personId          Int
+  roomNumber        String?
+  createdAt         DateTime  @default(now())
+
+  hotelRoom         TripHotelRoom @relation(fields: [tripHotelRoomId], references: [id], onDelete: Cascade)
+}
+
+model TripEmbassyService {
+  id                      Int       @id @default(autoincrement())
+  travelRequestId         Int
+  submissionDate          DateTime?
+  arrivalContactPerson    String?
+  arrivalContactPhone     String?
+  arrivalContactEmail     String?
+  sameDepartureContact    Boolean   @default(true)
+  departureContactPerson  String?
+  departureContactPhone   String?
+  departureContactEmail   String?
+  passengersArrivalCount  Int?
+  passengersDepartureCount Int?
+  arrivalFlightId         Int?
+  departureFlightId       Int?
+  arrivalTime             String?
+  departureTime           String?
+  status                  String    @default("PENDING")
+  notes                   String?
+  createdAt               DateTime  @default(now())
+
+  travelRequest     TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
+  arrivalFlight     TripFlight? @relation("ArrivalFlight", fields: [arrivalFlightId], references: [id])
+  departureFlight   TripFlight? @relation("DepartureFlight", fields: [departureFlightId], references: [id])
+  passengers        TripEmbassyPassenger[]
+}
+
+model TripEmbassyPassenger {
+  id                  Int       @id @default(autoincrement())
+  embassyServiceId    Int
+  personType          String
+  personId            Int
+  serviceType         String    // ARRIVAL, DEPARTURE, BOTH
+  createdAt           DateTime  @default(now())
+
+  embassyService      TripEmbassyService @relation(fields: [embassyServiceId], references: [id], onDelete: Cascade)
+}
+
+model TripTrain {
+  id                Int       @id @default(autoincrement())
+  travelRequestId   Int
+  trainNumber       String?
+  route             String?
+  departureStation  String?
+  arrivalStation    String?
+  departureDate     DateTime?
+  departureTime     String?
+  arrivalDate       DateTime?
+  arrivalTime       String?
+  class             String?
+  bookingReference  String?
+  status            String    @default("PENDING")
+  notes             String?
+  createdAt         DateTime  @default(now())
+
+  travelRequest     TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
+  passengers        TripTrainPassenger[]
+}
+
+model TripTrainPassenger {
+  id                Int       @id @default(autoincrement())
+  tripTrainId       Int
+  personType        String
+  personId          Int
+  seatNumber        String?
+  createdAt         DateTime  @default(now())
+
+  train             TripTrain @relation(fields: [tripTrainId], references: [id], onDelete: Cascade)
+}
+
+model TripRentalCarSelfDrive {
+  id                Int       @id @default(autoincrement())
+  travelRequestId   Int
+  driverPersonType  String
+  driverPersonId    Int
+  carType           String?
+  carModel          String?
+  rentalCompany     String?
+  pickupLocation    String?
+  pickupDate        DateTime?
+  pickupTime        String?
+  returnLocation    String?
+  returnDate        DateTime?
+  returnTime        String?
+  insuranceType     String?
+  bookingReference  String?
+  status            String    @default("PENDING")
+  notes             String?
+  createdAt         DateTime  @default(now())
+
+  travelRequest     TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
+}
+
+model TripCarWithDriver {
+  id                Int       @id @default(autoincrement())
+  travelRequestId   Int
+  carType           String?
+  rentalCompany     String?
+  driverName        String?
+  driverPhone       String?
+  numberOfPassengers Int?
+  pickupLocation    String?
+  pickupDate        DateTime?
+  pickupTime        String?
+  returnLocation    String?
+  returnDate        DateTime?
+  returnTime        String?
+  bookingReference  String?
+  status            String    @default("PENDING")
+  notes             String?
+  createdAt         DateTime  @default(now())
+
+  travelRequest     TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
+  passengers        TripCarPassenger[]
+}
+
+model TripCarPassenger {
+  id                Int       @id @default(autoincrement())
+  tripCarId         Int
+  personType        String
+  personId          Int
+  createdAt         DateTime  @default(now())
+
+  car               TripCarWithDriver @relation(fields: [tripCarId], references: [id], onDelete: Cascade)
+}
+
+// ========== EVENTS & ACTIVITIES ==========
+model TripEvent {
+  id                  Int       @id @default(autoincrement())
+  travelRequestId     Int
+  eventType           String    // TICKET, PARK, TOUR, RESTAURANT, MEETING, CONFERENCE, SPECIAL_GUIDE, MUSEUM, SHOW, OTHER
+  eventName           String
+  description         String?
+  location            String?
+  address             String?
+  city                String?
+  country             String?
+  eventDate           DateTime?
+  startTime           String?
+  endTime             String?
+  durationHours       Float?
+  pricePerPerson      Float?
+  totalPrice          Float?
+  currency            String    @default("USD")
+  bookingReference    String?
+  contactPerson       String?
+  contactPhone        String?
+  contactEmail        String?
+  websiteUrl          String?
+  dressCode           String?
+  specialInstructions String?
+  status              String    @default("PENDING") // PENDING, CONFIRMED, CANCELLED
+  notes               String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  travelRequest       TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
+  participants        TripEventParticipant[]
+  attachments         TripEventAttachment[]
+}
+
+model TripEventParticipant {
+  id                  Int       @id @default(autoincrement())
+  tripEventId         Int
+  personType          String
+  personId            Int
+  ticketNumber        String?
+  specialRequirements String?
+  createdAt           DateTime  @default(now())
+
+  event               TripEvent @relation(fields: [tripEventId], references: [id], onDelete: Cascade)
+}
+
+model TripEventAttachment {
+  id                Int       @id @default(autoincrement())
+  tripEventId       Int
+  fileName          String
+  fileType          String?
+  fileUrl           String
+  fileSize          Int?
+  uploadedById      Int?
+  uploadedAt        DateTime  @default(now())
+
+  event             TripEvent @relation(fields: [tripEventId], references: [id], onDelete: Cascade)
+}
+
+model TripPassenger {
+  id                      Int       @id @default(autoincrement())
+  travelRequestId         Int
+  personType              String    // EMPLOYEE, STAKEHOLDER, EMPLOYER, TASK_HELPER
+  personId                Int
+  isMainPassenger         Boolean   @default(false)
+  visaStatus              String?   // NEEDS_VISA, HAS_VISA, UNDER_PROCESS, NOT_REQUIRED
+  visaId                  Int?
+  visaValidityStart       DateTime?
+  visaValidityEnd         DateTime?
+  passportId              Int?
+  notificationPreference  String    @default("ALL") // ALL, MINIMAL, NONE
+  receiveFlightDetails    Boolean   @default(true)
+  receiveHotelDetails     Boolean   @default(true)
+  receiveEventDetails     Boolean   @default(true)
+  receiveItinerary        Boolean   @default(true)
+  createdAt               DateTime  @default(now())
+
+  travelRequest           TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
+
+  @@unique([travelRequestId, personType, personId])
+}
+
+model TripCommunication {
+  id                  Int       @id @default(autoincrement())
+  travelRequestId     Int
+  recipientPersonType String?
+  recipientPersonId   Int?
+  communicationType   String    // EMAIL, WHATSAPP, SMS
+  contentType         String?   // FLIGHT_DETAILS, PRIVATE_JET_DETAILS, HOTEL_DETAILS, EVENT_DETAILS, FULL_ITINERARY, PASSENGER_LIST, TRIP_BRIEF, CUSTOM
+  subject             String?
+  message             String?
+  htmlContent         String?
+  sentAt              DateTime  @default(now())
+  status              String    // SENT, FAILED, PENDING
+  externalMessageId   String?   // Message ID from Resend/Twilio
+  errorMessage        String?
+
+  travelRequest       TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
+}
+
+model TripCommunicationTemplate {
+  id                  Int       @id @default(autoincrement())
+  templateName        String    @unique
+  templateType        String    // FLIGHT_DETAILS, PRIVATE_JET_DETAILS, HOTEL_DETAILS, EVENT_DETAILS, FULL_ITINERARY, TRIP_BRIEF
+  subjectTemplate     String?
+  emailHtmlTemplate   String?
+  whatsappTemplate    String?
+  smsTemplate         String?
+  variables           Json?     // List of available variables
+  isActive            Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model TripStatusHistory {
+  id                Int       @id @default(autoincrement())
+  travelRequestId   Int
+  oldStatus         String?
+  newStatus         String?
+  changedById       Int?
+  changeReason      String?
+  changedAt         DateTime  @default(now())
+
+  travelRequest     TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
+}
+
+model TripNotification {
+  id                Int       @id @default(autoincrement())
+  travelRequestId   Int
+  notificationType  String    // PASSENGER_CHANGE, HOTEL_UPDATE, VISA_ALERT, FLIGHT_CHANGE, EVENT_UPDATE, etc.
+  recipients        Json      // Array of {person_type, person_id, channels: [email, whatsapp]}
+  messageTemplate   String?
+  data              Json?
+  scheduledFor      DateTime?
+  sentAt            DateTime?
+  status            String    @default("PENDING")
+  createdAt         DateTime  @default(now())
+
+  travelRequest     TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
 }
 

@@ -123,6 +123,15 @@ export async function POST(request: NextRequest) {
     if (employerData.relationshipStart) {
       employerData.relationshipStart = new Date(employerData.relationshipStart)
     }
+    if (employerData.passportExpiry) {
+      employerData.passportExpiry = new Date(employerData.passportExpiry)
+    }
+    if (employerData.visaValidFrom) {
+      employerData.visaValidFrom = new Date(employerData.visaValidFrom)
+    }
+    if (employerData.visaValidTo) {
+      employerData.visaValidTo = new Date(employerData.visaValidTo)
+    }
 
     // Convert numeric fields
     if (employerData.establishedYear) {

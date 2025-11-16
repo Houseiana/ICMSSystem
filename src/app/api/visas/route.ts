@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/infrastructure/database/prisma/client'
+import { fetchPersonDetails } from '@/lib/utils/personHelper'
 
 export async function GET(request: NextRequest) {
   try {
@@ -52,9 +53,6 @@ export async function POST(request: NextRequest) {
     const {
       personType,
       personId,
-      personName,
-      personEmail,
-      personNationality,
       destinationCountry,
       countryIcon,
       countryFullName,
@@ -128,12 +126,26 @@ export async function POST(request: NextRequest) {
       createdBy
     } = body
 
-    if (!personType || !personId || !personName || !destinationCountry || !visaStatus) {
+    if (!personType || !personId || !destinationCountry || !visaStatus) {
       return NextResponse.json(
-        { error: 'Person type, person ID, person name, destination country, and visa status are required' },
+        { error: 'Person type, person ID, destination country, and visa status are required' },
         { status: 400 }
       )
     }
+
+    // Fetch person details automatically
+    const personDetails = await fetchPersonDetails(personType, parseInt(personId))
+
+    if (!personDetails) {
+      return NextResponse.json(
+        { error: 'Person not found' },
+        { status: 404 }
+      )
+    }
+
+    const personName = personDetails.fullName
+    const personEmail = personDetails.email || undefined
+    const personNationality = personDetails.nationality || undefined
 
     // Allow multiple visa records for the same person and country (for historical tracking)
 

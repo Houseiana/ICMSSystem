@@ -143,6 +143,17 @@ export default function EmployersPage() {
     state: '',
     country: '',
     postalCode: '',
+    // Passport/Visa Information
+    passportNumber: '',
+    passportExpiry: '',
+    passportIssuingCountry: '',
+    visaStatus: '',
+    visaType: '',
+    visaNumber: '',
+    visaValidFrom: '',
+    visaValidTo: '',
+    visaCategory: '',
+    visaEntries: '',
     // Business
     establishedYear: '',
     employeeCount: '',
@@ -304,6 +315,17 @@ export default function EmployersPage() {
       state: employer.state || '',
       country: employer.country || '',
       postalCode: employer.postalCode || '',
+      // Passport/Visa Information
+      passportNumber: '',
+      passportExpiry: '',
+      passportIssuingCountry: '',
+      visaStatus: '',
+      visaType: '',
+      visaNumber: '',
+      visaValidFrom: '',
+      visaValidTo: '',
+      visaCategory: '',
+      visaEntries: '',
       // Business
       establishedYear: employer.establishedYear?.toString() || '',
       employeeCount: employer.employeeCount || '',
@@ -365,6 +387,17 @@ export default function EmployersPage() {
       state: '',
       country: '',
       postalCode: '',
+      // Passport/Visa Information
+      passportNumber: '',
+      passportExpiry: '',
+      passportIssuingCountry: '',
+      visaStatus: '',
+      visaType: '',
+      visaNumber: '',
+      visaValidFrom: '',
+      visaValidTo: '',
+      visaCategory: '',
+      visaEntries: '',
       // Business
       establishedYear: '',
       employeeCount: '',
@@ -1159,6 +1192,151 @@ export default function EmployersPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Travel Information */}
+                {formData.employerType === 'INDIVIDUAL' && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Travel Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Passport Number
+                        </label>
+                        <input
+                          type="text"
+                          name="passportNumber"
+                          value={formData.passportNumber}
+                          onChange={handleInputChange}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Passport Expiration
+                        </label>
+                        <input
+                          type="date"
+                          name="passportExpiry"
+                          value={formData.passportExpiry}
+                          onChange={handleInputChange}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Passport Issuing Country
+                        </label>
+                        <input
+                          type="text"
+                          name="passportIssuingCountry"
+                          value={formData.passportIssuingCountry}
+                          onChange={handleInputChange}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Visa Status
+                        </label>
+                        <select
+                          name="visaStatus"
+                          value={formData.visaStatus}
+                          onChange={handleInputChange}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select Status</option>
+                          <option value="VALID">Valid</option>
+                          <option value="EXPIRED">Expired</option>
+                          <option value="PENDING">Pending</option>
+                          <option value="NOT_REQUIRED">Not Required</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Visa Type
+                        </label>
+                        <select
+                          name="visaType"
+                          value={formData.visaType}
+                          onChange={handleInputChange}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select Type</option>
+                          <option value="TOURIST">Tourist</option>
+                          <option value="BUSINESS">Business</option>
+                          <option value="WORK">Work</option>
+                          <option value="STUDENT">Student</option>
+                          <option value="RESIDENCE">Residence</option>
+                          <option value="TRANSIT">Transit</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Visa Number
+                        </label>
+                        <input
+                          type="text"
+                          name="visaNumber"
+                          value={formData.visaNumber}
+                          onChange={handleInputChange}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Visa Valid From
+                        </label>
+                        <input
+                          type="date"
+                          name="visaValidFrom"
+                          value={formData.visaValidFrom}
+                          onChange={handleInputChange}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Valid Until (Visa Expiry)
+                        </label>
+                        <input
+                          type="date"
+                          name="visaValidTo"
+                          value={formData.visaValidTo}
+                          onChange={handleInputChange}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Visa Category
+                        </label>
+                        <input
+                          type="text"
+                          name="visaCategory"
+                          value={formData.visaCategory}
+                          onChange={handleInputChange}
+                          placeholder="e.g., B1/B2, H1B, F1"
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Entry Type
+                        </label>
+                        <select
+                          name="visaEntries"
+                          value={formData.visaEntries}
+                          onChange={handleInputChange}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select Entry Type</option>
+                          <option value="SINGLE">Single Entry</option>
+                          <option value="MULTIPLE">Multiple Entries</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Business Details */}
                 <div className="space-y-4">

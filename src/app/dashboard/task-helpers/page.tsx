@@ -182,10 +182,16 @@ export default function TaskHelpersPage() {
     nationalId: '',
     passportNumber: '',
     passportExpiry: '',
+    passportIssuingCountry: '',
     drivingLicense: '',
     licenseExpiry: '',
     visaStatus: '',
-    visaExpiry: ''
+    visaType: '',
+    visaNumber: '',
+    visaValidFrom: '',
+    visaValidTo: '',
+    visaCategory: '',
+    visaEntries: ''
   })
 
   const fetchTaskHelpers = async () => {
@@ -320,10 +326,16 @@ export default function TaskHelpersPage() {
       nationalId: '',
       passportNumber: '',
       passportExpiry: '',
+      passportIssuingCountry: '',
       drivingLicense: '',
       licenseExpiry: '',
       visaStatus: '',
-      visaExpiry: ''
+      visaType: '',
+      visaNumber: '',
+      visaValidFrom: '',
+      visaValidTo: '',
+      visaCategory: '',
+      visaEntries: ''
     })
     setEditingHelper(null)
     setShowForm(false)
@@ -677,6 +689,139 @@ export default function TaskHelpersPage() {
                           onChange={(e) => setFormData(prev => ({ ...prev, monthlyRate: e.target.value }))}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Travel Information */}
+                  <div className="border border-gray-200 rounded-lg p-6">
+                    <h3 className="text-lg font-medium mb-4">✈️ Travel Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Passport Number
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.passportNumber}
+                          onChange={(e) => setFormData(prev => ({ ...prev, passportNumber: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Passport Expiration
+                        </label>
+                        <input
+                          type="date"
+                          value={formData.passportExpiry}
+                          onChange={(e) => setFormData(prev => ({ ...prev, passportExpiry: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Passport Issuing Country
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.passportIssuingCountry}
+                          onChange={(e) => setFormData(prev => ({ ...prev, passportIssuingCountry: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Visa Status
+                        </label>
+                        <select
+                          value={formData.visaStatus}
+                          onChange={(e) => setFormData(prev => ({ ...prev, visaStatus: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select Status</option>
+                          <option value="VALID">Valid</option>
+                          <option value="EXPIRED">Expired</option>
+                          <option value="PENDING">Pending</option>
+                          <option value="NOT_REQUIRED">Not Required</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Visa Type
+                        </label>
+                        <select
+                          value={formData.visaType}
+                          onChange={(e) => setFormData(prev => ({ ...prev, visaType: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select Type</option>
+                          <option value="TOURIST">Tourist</option>
+                          <option value="BUSINESS">Business</option>
+                          <option value="WORK">Work</option>
+                          <option value="STUDENT">Student</option>
+                          <option value="RESIDENCE">Residence</option>
+                          <option value="TRANSIT">Transit</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Visa Number
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.visaNumber}
+                          onChange={(e) => setFormData(prev => ({ ...prev, visaNumber: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Visa Valid From
+                        </label>
+                        <input
+                          type="date"
+                          value={formData.visaValidFrom}
+                          onChange={(e) => setFormData(prev => ({ ...prev, visaValidFrom: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Valid Until (Visa Expiry)
+                        </label>
+                        <input
+                          type="date"
+                          value={formData.visaValidTo}
+                          onChange={(e) => setFormData(prev => ({ ...prev, visaValidTo: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Visa Category
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.visaCategory}
+                          onChange={(e) => setFormData(prev => ({ ...prev, visaCategory: e.target.value }))}
+                          placeholder="e.g., B1/B2, H1B, F1"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Entry Type
+                        </label>
+                        <select
+                          value={formData.visaEntries}
+                          onChange={(e) => setFormData(prev => ({ ...prev, visaEntries: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select Entry Type</option>
+                          <option value="SINGLE">Single Entry</option>
+                          <option value="MULTIPLE">Multiple Entries</option>
+                        </select>
                       </div>
                     </div>
                   </div>
