@@ -101,6 +101,13 @@ export async function POST(request: NextRequest) {
     // Extract contacts separately to avoid passing them in the main data
     const { contacts, ...employerData } = body
 
+    // Convert empty strings to null for all fields
+    Object.keys(employerData).forEach(key => {
+      if (employerData[key] === '' || employerData[key] === 'undefined' || employerData[key] === 'null') {
+        employerData[key] = null
+      }
+    })
+
     // Generate full name for individual employers
     if (employerData.employerType === 'INDIVIDUAL' && employerData.firstName && employerData.lastName) {
       employerData.fullName = `${employerData.firstName}${employerData.middleName ? ' ' + employerData.middleName : ''} ${employerData.lastName}`.trim()
@@ -139,6 +146,13 @@ export async function POST(request: NextRequest) {
 
     // Prepare contacts data
     const contactsData = contacts ? contacts.map((contact: any) => {
+      // Convert empty strings to null for contact fields
+      Object.keys(contact).forEach(key => {
+        if (contact[key] === '' || contact[key] === 'undefined' || contact[key] === 'null') {
+          contact[key] = null
+        }
+      })
+
       const contactData = {
         ...contact,
         fullName: contact.firstName && contact.lastName
