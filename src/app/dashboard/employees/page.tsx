@@ -5,6 +5,7 @@ import DashboardLayout from '@/components/DashboardLayout'
 import EmployeeTable from '@/components/EmployeeTable'
 import UnifiedEmployeeForm from '@/components/UnifiedEmployeeForm'
 import ConfirmModal from '@/components/ConfirmModal'
+import PersonPreviewModal from '@/components/PersonPreviewModal'
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<any[]>([])
@@ -21,6 +22,12 @@ export default function EmployeesPage() {
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean
     employee?: any
+  }>({
+    isOpen: false
+  })
+  const [previewModal, setPreviewModal] = useState<{
+    isOpen: boolean
+    personId?: number
   }>({
     isOpen: false
   })
@@ -243,6 +250,7 @@ export default function EmployeesPage() {
           onView={handleViewEmployee}
           onEdit={handleEditEmployee}
           onDelete={handleDeleteEmployee}
+          onPreview={(employee) => setPreviewModal({ isOpen: true, personId: employee.id })}
         />
 
         {/* Employee Modal */}
@@ -266,6 +274,14 @@ export default function EmployeesPage() {
           confirmText="Delete"
           cancelText="Cancel"
           type="danger"
+        />
+
+        {/* Preview Modal */}
+        <PersonPreviewModal
+          isOpen={previewModal.isOpen}
+          onClose={() => setPreviewModal({ isOpen: false })}
+          personId={previewModal.personId}
+          personType="EMPLOYEE"
         />
       </div>
     </DashboardLayout>

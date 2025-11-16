@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import DashboardLayout from '@/components/DashboardLayout'
+import PersonPreviewModal from '@/components/PersonPreviewModal'
+import { Eye } from 'lucide-react'
 
 interface TaskHelper {
   id: number
@@ -52,6 +54,12 @@ export default function TaskHelpersPage() {
   const [selectedWorkType, setSelectedWorkType] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingHelper, setEditingHelper] = useState<TaskHelper | null>(null)
+  const [previewModal, setPreviewModal] = useState<{
+    isOpen: boolean
+    personId?: number
+  }>({
+    isOpen: false
+  })
 
   const [formData, setFormData] = useState({
     // Personal Information
@@ -191,7 +199,12 @@ export default function TaskHelpersPage() {
     visaValidFrom: '',
     visaValidTo: '',
     visaCategory: '',
-    visaEntries: ''
+    visaEntries: '',
+
+    // Document URLs (Dropbox Links)
+    photoUrl: '',
+    qidDocumentUrl: '',
+    passportDocumentUrl: ''
   })
 
   const fetchTaskHelpers = async () => {
@@ -335,7 +348,11 @@ export default function TaskHelpersPage() {
       visaValidFrom: '',
       visaValidTo: '',
       visaCategory: '',
-      visaEntries: ''
+      visaEntries: '',
+
+      photoUrl: '',
+      qidDocumentUrl: '',
+      passportDocumentUrl: ''
     })
     setEditingHelper(null)
     setShowForm(false)
@@ -826,6 +843,49 @@ export default function TaskHelpersPage() {
                     </div>
                   </div>
 
+                  {/* Documents & Photos */}
+                  <div className="border border-gray-200 rounded-lg p-6">
+                    <h3 className="text-lg font-medium mb-4">📄 Documents & Photos</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Personal Photo URL (Dropbox Link)
+                        </label>
+                        <input
+                          type="url"
+                          value={formData.photoUrl}
+                          onChange={(e) => setFormData(prev => ({ ...prev, photoUrl: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="https://www.dropbox.com/..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          QID Document URL (Dropbox Link)
+                        </label>
+                        <input
+                          type="url"
+                          value={formData.qidDocumentUrl}
+                          onChange={(e) => setFormData(prev => ({ ...prev, qidDocumentUrl: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="https://www.dropbox.com/..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Passport Document URL (Dropbox Link)
+                        </label>
+                        <input
+                          type="url"
+                          value={formData.passportDocumentUrl}
+                          onChange={(e) => setFormData(prev => ({ ...prev, passportDocumentUrl: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="https://www.dropbox.com/..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Additional Information */}
                   <div className="border border-gray-200 rounded-lg p-6">
                     <h3 className="text-lg font-medium mb-4">📝 Additional Information</h3>
@@ -950,16 +1010,25 @@ export default function TaskHelpersPage() {
                         Hired: {new Date(helper.hireDate).toLocaleDateString()}
                       </div>
 
-                      <button
-                        onClick={() => {
-                          setEditingHelper(helper)
-                          // Load helper data into form (implement this)
-                          setShowForm(true)
-                        }}
-                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg text-sm"
-                      >
-                        ✏️ Edit Task Helper
-                      </button>
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => setPreviewModal({ isOpen: true, personId: helper.id })}
+                          className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 rounded-lg text-sm flex items-center justify-center gap-2"
+                        >
+                          <Eye className="w-4 h-4" />
+                          Preview
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditingHelper(helper)
+                            // Load helper data into form (implement this)
+                            setShowForm(true)
+                          }}
+                          className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg text-sm"
+                        >
+                          ✏️ Edit Task Helper
+                        </button>
+                      </div>
                     </div>
                   )
                 })}
@@ -967,6 +1036,14 @@ export default function TaskHelpersPage() {
             )}
           </div>
         </div>
+
+        {/* Preview Modal */}
+        <PersonPreviewModal
+          isOpen={previewModal.isOpen}
+          onClose={() => setPreviewModal({ isOpen: false })}
+          personId={previewModal.personId}
+          personType="TASK_HELPER"
+        />
       </div>
     </DashboardLayout>
   )

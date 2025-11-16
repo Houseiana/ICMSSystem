@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { X, User, FileText, MapPin, Phone, Mail, Calendar, Globe, Heart, Briefcase, GraduationCap, DollarSign, FileCheck, Image as ImageIcon } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { X, User, FileText, MapPin, Phone, Mail, Calendar, Globe, Heart, Briefcase, GraduationCap, DollarSign, FileCheck, Image as ImageIcon, Users } from 'lucide-react'
 
 export type PersonType = 'EMPLOYEE' | 'EMPLOYER' | 'STAKEHOLDER' | 'TASK_HELPER'
 
@@ -119,13 +119,85 @@ interface PersonData {
   // Notes
   notes?: string | null
   personalNotes?: string | null
+
+  // Stakeholder Relationships (only for STAKEHOLDER type)
+  spouse?: {
+    id: number
+    firstName: string
+    middleName?: string
+    lastName: string
+    email?: string
+    phone?: string
+  }
+  father?: {
+    id: number
+    firstName: string
+    middleName?: string
+    lastName: string
+    email?: string
+    phone?: string
+  }
+  mother?: {
+    id: number
+    firstName: string
+    middleName?: string
+    lastName: string
+    email?: string
+    phone?: string
+  }
+  childrenAsFather?: Array<{
+    id: number
+    firstName: string
+    middleName?: string
+    lastName: string
+    email?: string
+    phone?: string
+    dateOfBirth?: Date | string | null
+  }>
+  childrenAsMother?: Array<{
+    id: number
+    firstName: string
+    middleName?: string
+    lastName: string
+    email?: string
+    phone?: string
+    dateOfBirth?: Date | string | null
+  }>
+  relationships?: StakeholderRelationship[]
+  relatedTo?: StakeholderRelationship[]
+}
+
+interface StakeholderRelationship {
+  id: number
+  relationshipType: string
+  description?: string
+  strength?: string
+  since?: Date | string | null
+  notes?: string
+  to?: {
+    id: number
+    firstName: string
+    middleName?: string
+    lastName: string
+    email?: string
+    phone?: string
+  }
+  from?: {
+    id: number
+    firstName: string
+    middleName?: string
+    lastName: string
+    email?: string
+    phone?: string
+  }
 }
 
 interface PersonPreviewModalProps {
   isOpen: boolean
   onClose: () => void
   personType: PersonType
-  personData: PersonData | null
+  personData?: PersonData | null
+  personId?: number
   loading?: boolean
 }
 
@@ -133,10 +205,65 @@ export default function PersonPreviewModal({
   isOpen,
   onClose,
   personType,
-  personData,
-  loading = false
+  personData: initialPersonData,
+  personId,
+  loading: externalLoading = false
 }: PersonPreviewModalProps) {
   const [activeTab, setActiveTab] = useState('personal')
+  const [personData, setPersonData] = useState<PersonData | null>(initialPersonData || null)
+  const [loading, setLoading] = useState(externalLoading)
+
+  // Fetch person data if personId is provided
+  useEffect(() => {
+    if (!isOpen || !personId) {
+      if (initialPersonData) {
+        setPersonData(initialPersonData)
+      }
+      return
+    }
+
+    const fetchPersonData = async () => {
+      setLoading(true)
+      try {
+        let endpoint = ''
+        switch (personType) {
+          case 'EMPLOYEE':
+            endpoint = `/api/employees/${personId}`
+            break
+          case 'EMPLOYER':
+            endpoint = `/api/employers/${personId}`
+            break
+          case 'STAKEHOLDER':
+            endpoint = `/api/stakeholders/${personId}`
+            break
+          case 'TASK_HELPER':
+            endpoint = `/api/task-helpers/${personId}`
+            break
+        }
+
+        const response = await fetch(endpoint)
+        if (response.ok) {
+          const data = await response.json()
+          setPersonData(data)
+        } else {
+          console.error('Failed to fetch person data')
+        }
+      } catch (error) {
+        console.error('Error fetching person data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPersonData()
+  }, [isOpen, personId, personType, initialPersonData])
+
+  // Reset tab when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setActiveTab('personal')
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -475,13 +602,238 @@ export default function PersonPreviewModal({
     </div>
   )
 
-  const tabs = [
+  const renderRelationshipsTab = () => {
+    const children = [...(personData?.childrenAsFather || []), ...(personData?.childrenAsMother || [])]
+    const hasRelationships = personData?.spouse || personData?.father || personData?.mother ||
+                            children.length > 0 || (personData?.relationships && personData.relationships.length > 0) ||
+                            (personData?.relatedTo && personData.relatedTo.length > 0)
+
+    if (!hasRelationships) {
+      return (
+        <div className="text-center py-12">
+          <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500">No relationships recorded</p>
+        </div>
+      )
+    }
+
+    const RelationshipCard = ({ title, person, relationshipType, icon }: any) => (
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 text-3xl">{icon}</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-block px-2 py-0.5 bg-blue-600 text-white text-xs font-semibold rounded">
+                {relationshipType}
+              </span>
+            </div>
+            <h4 className="font-semibold text-gray-900 text-lg">
+              {person.firstName} {person.middleName ? person.middleName + ' ' : ''}{person.lastName}
+            </h4>
+            {person.email && (
+              <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                <Mail className="w-3 h-3" /> {person.email}
+              </p>
+            )}
+            {person.phone && (
+              <p className="text-sm text-gray-600 mt-0.5 flex items-center gap-1">
+                <Phone className="w-3 h-3" /> {person.phone}
+              </p>
+            )}
+            {person.dateOfBirth && (
+              <p className="text-sm text-gray-600 mt-0.5 flex items-center gap-1">
+                <Calendar className="w-3 h-3" /> Born: {formatDate(person.dateOfBirth)}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+
+    return (
+      <div className="space-y-6">
+        {/* Immediate Family */}
+        {(personData?.spouse || personData?.father || personData?.mother) && (
+          <div>
+            <SectionTitle>Immediate Family</SectionTitle>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {personData?.spouse && (
+                <RelationshipCard
+                  title="Spouse"
+                  person={personData.spouse}
+                  relationshipType="SPOUSE"
+                  icon="💕"
+                />
+              )}
+              {personData?.father && (
+                <RelationshipCard
+                  title="Father"
+                  person={personData.father}
+                  relationshipType="FATHER"
+                  icon="👨"
+                />
+              )}
+              {personData?.mother && (
+                <RelationshipCard
+                  title="Mother"
+                  person={personData.mother}
+                  relationshipType="MOTHER"
+                  icon="👩"
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Children */}
+        {children.length > 0 && (
+          <div>
+            <SectionTitle>Children ({children.length})</SectionTitle>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {children.map((child) => (
+                <RelationshipCard
+                  key={child.id}
+                  title="Child"
+                  person={child}
+                  relationshipType="CHILD"
+                  icon="👶"
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Other Relationships (from stakeholder) */}
+        {personData?.relationships && personData.relationships.length > 0 && (
+          <div>
+            <SectionTitle>Other Relationships</SectionTitle>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {personData.relationships.map((rel) => (
+                <div key={rel.id} className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-200">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 text-3xl">🔗</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="inline-block px-2 py-0.5 bg-purple-600 text-white text-xs font-semibold rounded">
+                          {rel.relationshipType}
+                        </span>
+                        {rel.strength && (
+                          <span className="inline-block px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded">
+                            {rel.strength}
+                          </span>
+                        )}
+                      </div>
+                      {rel.to && (
+                        <>
+                          <h4 className="font-semibold text-gray-900">
+                            {rel.to.firstName} {rel.to.middleName ? rel.to.middleName + ' ' : ''}{rel.to.lastName}
+                          </h4>
+                          {rel.to.email && (
+                            <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                              <Mail className="w-3 h-3" /> {rel.to.email}
+                            </p>
+                          )}
+                          {rel.to.phone && (
+                            <p className="text-sm text-gray-600 mt-0.5 flex items-center gap-1">
+                              <Phone className="w-3 h-3" /> {rel.to.phone}
+                            </p>
+                          )}
+                        </>
+                      )}
+                      {rel.description && (
+                        <p className="text-sm text-gray-700 mt-2 italic">{rel.description}</p>
+                      )}
+                      {rel.since && (
+                        <p className="text-xs text-gray-500 mt-1">Since: {formatDate(rel.since)}</p>
+                      )}
+                      {rel.notes && (
+                        <p className="text-xs text-gray-600 mt-1 bg-white bg-opacity-50 p-2 rounded">
+                          {rel.notes}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Reverse Relationships (to this stakeholder) */}
+        {personData?.relatedTo && personData.relatedTo.length > 0 && (
+          <div>
+            <SectionTitle>Related By Others</SectionTitle>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {personData.relatedTo.map((rel) => (
+                <div key={rel.id} className="bg-gradient-to-br from-green-50 to-teal-50 p-4 rounded-lg border border-green-200">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 text-3xl">↩️</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="inline-block px-2 py-0.5 bg-green-600 text-white text-xs font-semibold rounded">
+                          {rel.relationshipType}
+                        </span>
+                        {rel.strength && (
+                          <span className="inline-block px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded">
+                            {rel.strength}
+                          </span>
+                        )}
+                      </div>
+                      {rel.from && (
+                        <>
+                          <h4 className="font-semibold text-gray-900">
+                            {rel.from.firstName} {rel.from.middleName ? rel.from.middleName + ' ' : ''}{rel.from.lastName}
+                          </h4>
+                          {rel.from.email && (
+                            <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                              <Mail className="w-3 h-3" /> {rel.from.email}
+                            </p>
+                          )}
+                          {rel.from.phone && (
+                            <p className="text-sm text-gray-600 mt-0.5 flex items-center gap-1">
+                              <Phone className="w-3 h-3" /> {rel.from.phone}
+                            </p>
+                          )}
+                        </>
+                      )}
+                      {rel.description && (
+                        <p className="text-sm text-gray-700 mt-2 italic">{rel.description}</p>
+                      )}
+                      {rel.since && (
+                        <p className="text-xs text-gray-500 mt-1">Since: {formatDate(rel.since)}</p>
+                      )}
+                      {rel.notes && (
+                        <p className="text-xs text-gray-600 mt-1 bg-white bg-opacity-50 p-2 rounded">
+                          {rel.notes}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const baseTabs = [
     { id: 'personal', label: 'Personal Info', icon: User },
     { id: 'documents', label: 'Documents', icon: FileText },
     { id: 'professional', label: 'Professional', icon: Briefcase },
     { id: 'emergency', label: 'Emergency & Health', icon: Heart },
     { id: 'notes', label: 'Notes', icon: FileText },
   ]
+
+  // Add Relationships tab for stakeholders
+  const tabs = personType === 'STAKEHOLDER'
+    ? [
+        baseTabs[0], // personal
+        { id: 'relationships', label: 'Relationships', icon: Users },
+        ...baseTabs.slice(1) // rest of tabs
+      ]
+    : baseTabs
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -545,6 +897,7 @@ export default function PersonPreviewModal({
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-6">
               {activeTab === 'personal' && renderPersonalTab()}
+              {activeTab === 'relationships' && renderRelationshipsTab()}
               {activeTab === 'documents' && renderDocumentsTab()}
               {activeTab === 'professional' && renderProfessionalTab()}
               {activeTab === 'emergency' && renderEmergencyTab()}

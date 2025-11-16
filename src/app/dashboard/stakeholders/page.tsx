@@ -2,6 +2,10 @@
 
 import React, { useState, useEffect } from 'react'
 import DashboardLayout from '@/components/DashboardLayout'
+import PersonPreviewModal from '@/components/PersonPreviewModal'
+import StakeholderForm from '@/components/StakeholderForm'
+import ConfirmModal from '@/components/ConfirmModal'
+import { Eye, Edit, Trash2 } from 'lucide-react'
 
 interface Stakeholder {
   id: number
@@ -39,6 +43,19 @@ export default function StakeholdersPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [editingStakeholder, setEditingStakeholder] = useState<Stakeholder | null>(null)
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean
+    stakeholderId?: number
+  }>({
+    isOpen: false
+  })
+  const [previewModal, setPreviewModal] = useState<{
+    isOpen: boolean
+    personId?: number
+  }>({
+    isOpen: false
+  })
 
   const fetchStakeholders = async () => {
     try {
@@ -57,6 +74,48 @@ export default function StakeholdersPage() {
   useEffect(() => {
     fetchStakeholders()
   }, [])
+
+  const handleEdit = (stakeholder: Stakeholder) => {
+    setEditingStakeholder(stakeholder)
+    setShowForm(true)
+  }
+
+  const handleDeleteClick = (stakeholderId: number) => {
+    setDeleteModal({ isOpen: true, stakeholderId })
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.stakeholderId) return
+
+    try {
+      const response = await fetch(`/api/stakeholders/${deleteModal.stakeholderId}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        await fetchStakeholders()
+        setDeleteModal({ isOpen: false })
+        alert('Stakeholder deleted successfully!')
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Failed to delete stakeholder')
+      }
+    } catch (error) {
+      console.error('Error deleting stakeholder:', error)
+      alert('Network error while deleting stakeholder')
+    }
+  }
+
+  const handleFormSuccess = async () => {
+    await fetchStakeholders()
+    setShowForm(false)
+    setEditingStakeholder(null)
+  }
+
+  const handleFormClose = () => {
+    setShowForm(false)
+    setEditingStakeholder(null)
+  }
 
   const createSampleStakeholders = async () => {
     try {
@@ -151,7 +210,10 @@ export default function StakeholdersPage() {
           </div>
           <div className="flex space-x-3">
             <button
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => {
+                setEditingStakeholder(null)
+                setShowForm(!showForm)
+              }}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center"
             >
               <span className="mr-2">➕</span>
@@ -218,196 +280,6 @@ export default function StakeholdersPage() {
           </div>
         </div>
 
-        {/* Simple Add Form */}
-        {showForm && (
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <h3 className="text-lg font-semibold mb-4">Add New Stakeholder</h3>
-            <form onSubmit={async (e) => {
-              e.preventDefault()
-              const formData = new FormData(e.target as HTMLFormElement)
-
-              try {
-                const response = await fetch('/api/stakeholders', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    firstName: formData.get('firstName'),
-                    lastName: formData.get('lastName'),
-                    email: formData.get('email'),
-                    phone: formData.get('phone'),
-                    gender: formData.get('gender'),
-                    occupation: formData.get('occupation'),
-                    dateOfBirth: formData.get('dateOfBirth') || null,
-                    nationality: formData.get('nationality') || null,
-                    passportNumber: formData.get('passportNumber') || null,
-                    passportExpiry: formData.get('passportExpiry') || null,
-                    passportIssuingCountry: formData.get('passportIssuingCountry') || null,
-                    visaStatus: formData.get('visaStatus') || null,
-                    visaType: formData.get('visaType') || null,
-                    visaNumber: formData.get('visaNumber') || null,
-                    visaValidFrom: formData.get('visaValidFrom') || null,
-                    visaValidTo: formData.get('visaValidTo') || null,
-                    visaCategory: formData.get('visaCategory') || null,
-                    visaEntries: formData.get('visaEntries') || null
-                  })
-                })
-
-                if (response.ok) {
-                  setShowForm(false)
-                  fetchStakeholders()
-                  alert('Stakeholder created successfully!')
-                } else {
-                  const error = await response.json()
-                  alert(error.error || 'Failed to create stakeholder')
-                }
-              } catch (error) {
-                console.error('Error:', error)
-                alert('Network error')
-              }
-            }}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  name="firstName"
-                  placeholder="First Name"
-                  required
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <input
-                  name="lastName"
-                  placeholder="Last Name"
-                  required
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <input
-                  name="email"
-                  type="email"
-                  placeholder="Email"
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <input
-                  name="phone"
-                  placeholder="Phone"
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <select
-                  name="gender"
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Select Gender</option>
-                  <option value="MALE">Male</option>
-                  <option value="FEMALE">Female</option>
-                  <option value="OTHER">Other</option>
-                </select>
-                <input
-                  name="occupation"
-                  placeholder="Occupation"
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <input
-                  name="dateOfBirth"
-                  type="date"
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              {/* Travel Information Section */}
-              <div className="mt-6">
-                <h4 className="text-md font-semibold mb-3">Travel Information</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input
-                    name="nationality"
-                    placeholder="Nationality"
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <input
-                    name="passportNumber"
-                    placeholder="Passport Number"
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <input
-                    name="passportExpiry"
-                    type="date"
-                    placeholder="Passport Expiration"
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <input
-                    name="passportIssuingCountry"
-                    placeholder="Passport Issuing Country"
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <select
-                    name="visaStatus"
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Visa Status</option>
-                    <option value="HAS_VISA">Has Visa</option>
-                    <option value="NO_VISA">No Visa</option>
-                    <option value="NEEDS_VISA">Needs Visa</option>
-                    <option value="UNDER_PROCESS">Under Process</option>
-                  </select>
-                  <select
-                    name="visaType"
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Visa Type</option>
-                    <option value="TOURIST">Tourist</option>
-                    <option value="BUSINESS">Business</option>
-                    <option value="WORK">Work</option>
-                    <option value="STUDENT">Student</option>
-                    <option value="RESIDENCE">Residence</option>
-                    <option value="TRANSIT">Transit</option>
-                  </select>
-                  <input
-                    name="visaNumber"
-                    placeholder="Visa Number"
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <input
-                    name="visaValidFrom"
-                    type="date"
-                    placeholder="Visa Valid From"
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <input
-                    name="visaValidTo"
-                    type="date"
-                    placeholder="Visa Valid Until"
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <input
-                    name="visaCategory"
-                    placeholder="Visa Category (e.g., B1/B2, H1B)"
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <select
-                    name="visaEntries"
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Entry Type</option>
-                    <option value="SINGLE">Single Entry</option>
-                    <option value="MULTIPLE">Multiple Entries</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex space-x-3 mt-4">
-                <button
-                  type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
-                >
-                  Create Stakeholder
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
 
         {/* Stakeholder List */}
         <div className="bg-white rounded-lg shadow-sm border">
@@ -477,6 +349,27 @@ export default function StakeholdersPage() {
                         </div>
 
                         <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => setPreviewModal({ isOpen: true, personId: stakeholder.id })}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Preview Stakeholder"
+                          >
+                            <Eye className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleEdit(stakeholder)}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            title="Edit Stakeholder"
+                          >
+                            <Edit className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(stakeholder.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete Stakeholder"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                             stakeholder.gender === 'MALE' ? 'bg-blue-100 text-blue-800' :
                             stakeholder.gender === 'FEMALE' ? 'bg-pink-100 text-pink-800' :
@@ -493,6 +386,35 @@ export default function StakeholdersPage() {
             )}
           </div>
         </div>
+
+        {/* Preview Modal */}
+        <PersonPreviewModal
+          isOpen={previewModal.isOpen}
+          onClose={() => setPreviewModal({ isOpen: false })}
+          personId={previewModal.personId}
+          personType="STAKEHOLDER"
+        />
+
+        {/* Stakeholder Form Modal */}
+        <StakeholderForm
+          isOpen={showForm}
+          onClose={handleFormClose}
+          stakeholder={editingStakeholder}
+          stakeholders={stakeholders}
+          onSuccess={handleFormSuccess}
+        />
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmModal
+          isOpen={deleteModal.isOpen}
+          onClose={() => setDeleteModal({ isOpen: false })}
+          onConfirm={handleDeleteConfirm}
+          title="Delete Stakeholder"
+          message="Are you sure you want to delete this stakeholder? This action cannot be undone and will remove all associated relationships."
+          confirmText="Delete"
+          cancelText="Cancel"
+          type="danger"
+        />
       </div>
     </DashboardLayout>
   )

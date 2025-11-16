@@ -80,6 +80,7 @@ export default function VisaDialog({
     visaCategory: '',
     issuanceDate: '',
     expiryDate: '',
+    visaCopyUrl: '',
     purposeOfTravel: '',
     applicationStatus: 'DRAFT',
     plannedDepartureDate: '',
@@ -96,6 +97,7 @@ export default function VisaDialog({
         visaCategory: visa.visaCategory || '',
         issuanceDate: visa.issuanceDate ? new Date(visa.issuanceDate).toISOString().split('T')[0] : '',
         expiryDate: visa.expiryDate ? new Date(visa.expiryDate).toISOString().split('T')[0] : '',
+        visaCopyUrl: visa.visaCopyUrl || '',
         purposeOfTravel: visa.purposeOfTravel || '',
         applicationStatus: visa.applicationStatus || 'DRAFT',
         plannedDepartureDate: visa.plannedDepartureDate ? new Date(visa.plannedDepartureDate).toISOString().split('T')[0] : '',
@@ -118,6 +120,7 @@ export default function VisaDialog({
         visaCategory: '',
         issuanceDate: '',
         expiryDate: '',
+        visaCopyUrl: '',
         purposeOfTravel: '',
         applicationStatus: 'DRAFT',
         plannedDepartureDate: '',
@@ -156,6 +159,7 @@ export default function VisaDialog({
         visaCategory: formData.visaCategory || null,
         issuanceDate: formData.issuanceDate || null,
         expiryDate: formData.expiryDate || null,
+        visaCopyUrl: formData.visaCopyUrl || null,
         purposeOfTravel: formData.purposeOfTravel || null,
         applicationStatus: formData.applicationStatus,
         plannedDepartureDate: formData.plannedDepartureDate || null,
@@ -353,6 +357,18 @@ export default function VisaDialog({
                       value={formData.expiryDate}
                       onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
                       className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Visa Copy URL (Dropbox Link)
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.visaCopyUrl}
+                      onChange={(e) => setFormData({ ...formData, visaCopyUrl: e.target.value })}
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://www.dropbox.com/..."
                     />
                   </div>
                 </div>

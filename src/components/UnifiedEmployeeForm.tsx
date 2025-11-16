@@ -79,6 +79,10 @@ interface FormState {
     qidIssueDate: string
     qidExpiryDate: string
     qidLocation: string
+    // Document URLs (Dropbox Links)
+    photoUrl: string
+    qidDocumentUrl: string
+    passportDocumentUrl: string
     // Emergency Contacts
     emergencyContact1Name: string
     emergencyContact1Relation: string
@@ -213,6 +217,10 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
         qidIssueDate: '',
         qidExpiryDate: '',
         qidLocation: '',
+        // Document URLs (Dropbox Links)
+        photoUrl: '',
+        qidDocumentUrl: '',
+        passportDocumentUrl: '',
         // Emergency Contacts
         emergencyContact1Name: '',
         emergencyContact1Relation: '',
@@ -368,6 +376,9 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
         qidIssueDate: employee.qidIssueDate ? employee.qidIssueDate.split('T')[0] : '',
         qidExpiryDate: employee.qidExpiryDate ? employee.qidExpiryDate.split('T')[0] : '',
         qidLocation: employee.qidLocation || '',
+        photoUrl: employee.photoUrl || '',
+        qidDocumentUrl: employee.qidDocumentUrl || '',
+        passportDocumentUrl: employee.passportDocumentUrl || '',
         emergencyContact1Name: employee.emergencyContact1Name || '',
         emergencyContact1Relation: employee.emergencyContact1Relation || '',
         emergencyContact1Phone: employee.emergencyContact1Phone || '',
@@ -533,7 +544,10 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
         spouseOccupation: '',
         spouseEmployer: '',
         spousePhone: '',
-        spouseNationalId: ''
+        spouseNationalId: '',
+        photoUrl: '',
+        qidDocumentUrl: '',
+        passportDocumentUrl: ''
       },
       hasChildren: false,
       numberOfChildren: 0,
@@ -1111,6 +1125,27 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">QID Issue Location</label>
                     <input type="text" name="qidLocation" value={formData.qidLocation} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" placeholder="Where was QID issued" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Documents & Photos */}
+              <div className="border-b border-gray-200 pb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <span className="mr-2">📄</span> Documents & Photos <span className="ml-2 text-sm text-green-600">(Optional)</span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Personal Photo URL (Dropbox Link)</label>
+                    <input type="url" name="photoUrl" value={formData.photoUrl} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" placeholder="https://www.dropbox.com/..." />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">QID Document URL (Dropbox Link)</label>
+                    <input type="url" name="qidDocumentUrl" value={formData.qidDocumentUrl} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" placeholder="https://www.dropbox.com/..." />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Passport Document URL (Dropbox Link)</label>
+                    <input type="url" name="passportDocumentUrl" value={formData.passportDocumentUrl} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" placeholder="https://www.dropbox.com/..." />
                   </div>
                 </div>
               </div>

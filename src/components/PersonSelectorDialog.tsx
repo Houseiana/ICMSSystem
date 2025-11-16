@@ -36,12 +36,83 @@ export default function PersonSelectorDialog({
   ]
 
   useEffect(() => {
-    if (isOpen && searchTerm.length >= 2) {
-      searchPersons()
-    } else if (searchTerm.length < 2) {
-      setPersons([])
+    if (isOpen) {
+      if (searchTerm.length >= 2) {
+        searchPersons()
+      } else if (searchTerm.length === 0) {
+        // Load all persons when no search term is entered
+        loadAllPersons()
+      } else {
+        setPersons([])
+      }
     }
   }, [searchTerm, activeTab, isOpen])
+
+  const loadAllPersons = async () => {
+    setLoading(true)
+    try {
+      let endpoint = ''
+      switch (activeTab) {
+        case 'EMPLOYEE':
+          endpoint = '/api/employees'
+          break
+        case 'EMPLOYER':
+          endpoint = '/api/employers'
+          break
+        case 'STAKEHOLDER':
+          endpoint = '/api/stakeholders'
+          break
+        case 'TASK_HELPER':
+          endpoint = '/api/task-helpers'
+          break
+      }
+
+      const response = await fetch(endpoint)
+      if (response.ok) {
+        const data = await response.json()
+
+        // Transform the data to match Person interface
+        const transformedData = data.map((item: any) => {
+          let fullName = ''
+          let email = null
+          let phone = null
+
+          if (activeTab === 'EMPLOYEE') {
+            fullName = item.fullName || `${item.firstName || ''} ${item.lastName || ''}`.trim()
+            email = item.email
+            phone = item.phone
+          } else if (activeTab === 'EMPLOYER') {
+            fullName = item.companyName || item.fullName || 'Unknown'
+            email = item.primaryEmail || item.secondaryEmail
+            phone = item.mainPhone || item.alternatePhone
+          } else if (activeTab === 'STAKEHOLDER') {
+            fullName = `${item.firstName || ''}${item.middleName ? ' ' + item.middleName : ''} ${item.lastName || ''}`.trim()
+            email = item.email
+            phone = item.phone
+          } else if (activeTab === 'TASK_HELPER') {
+            fullName = item.fullName || 'Unknown'
+            email = item.primaryEmail
+            phone = item.primaryPhone
+          }
+
+          return {
+            id: item.id,
+            fullName,
+            email,
+            phone,
+            nationality: item.nationality,
+            type: activeTab
+          }
+        })
+
+        setPersons(transformedData)
+      }
+    } catch (error) {
+      console.error('Error loading persons:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const searchPersons = async () => {
     setLoading(true)
@@ -88,14 +159,19 @@ export default function PersonSelectorDialog({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              placeholder="Search by name, email, or phone..."
+              placeholder="Search by name, email, or phone (optional)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <p className="text-sm text-gray-500 mt-2">
-            Enter at least 2 characters to search
+            {searchTerm.length === 0
+              ? 'Showing all records. Type to search for specific persons.'
+              : searchTerm.length === 1
+              ? 'Enter at least 2 characters to search'
+              : `Searching for "${searchTerm}"...`
+            }
           </p>
         </div>
 
@@ -126,15 +202,15 @@ export default function PersonSelectorDialog({
             <div className="flex justify-center items-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
             </div>
-          ) : searchTerm.length < 2 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Search size={48} className="mx-auto mb-2 opacity-50" />
-              <p>Start typing to search for persons</p>
-            </div>
           ) : persons.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <User size={48} className="mx-auto mb-2 opacity-50" />
-              <p>No persons found matching "{searchTerm}"</p>
+              <p>
+                {searchTerm.length >= 2
+                  ? `No persons found matching "${searchTerm}"`
+                  : 'No records available'
+                }
+              </p>
             </div>
           ) : (
             <div className="space-y-2">

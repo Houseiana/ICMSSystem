@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import DashboardLayout from '@/components/DashboardLayout'
+import PersonPreviewModal from '@/components/PersonPreviewModal'
+import { Eye } from 'lucide-react'
 
 interface EmployerContact {
   id?: number
@@ -107,6 +109,12 @@ export default function EmployersPage() {
   const [filterRelationship, setFilterRelationship] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [stats, setStats] = useState<Record<string, number>>({})
+  const [previewModal, setPreviewModal] = useState<{
+    isOpen: boolean
+    personId?: number
+  }>({
+    isOpen: false
+  })
 
   // Form state
   const [formData, setFormData] = useState({
@@ -128,6 +136,8 @@ export default function EmployersPage() {
     maritalStatus: '',
     nationality: '',
     profession: '',
+    bloodGroup: '',
+    religion: '',
     // Registration
     registrationNumber: '',
     taxId: '',
@@ -143,6 +153,10 @@ export default function EmployersPage() {
     state: '',
     country: '',
     postalCode: '',
+    // Document URLs
+    photoUrl: '',
+    qidDocumentUrl: '',
+    passportDocumentUrl: '',
     // Passport/Visa Information
     passportNumber: '',
     passportExpiry: '',
@@ -300,6 +314,8 @@ export default function EmployersPage() {
       maritalStatus: employer.maritalStatus || '',
       nationality: employer.nationality || '',
       profession: employer.profession || '',
+      bloodGroup: (employer as any).bloodGroup || '',
+      religion: (employer as any).religion || '',
       // Registration
       registrationNumber: '',
       taxId: '',
@@ -315,6 +331,10 @@ export default function EmployersPage() {
       state: employer.state || '',
       country: employer.country || '',
       postalCode: employer.postalCode || '',
+      // Document URLs
+      photoUrl: (employer as any).photoUrl || '',
+      qidDocumentUrl: (employer as any).qidDocumentUrl || '',
+      passportDocumentUrl: (employer as any).passportDocumentUrl || '',
       // Passport/Visa Information
       passportNumber: '',
       passportExpiry: '',
@@ -372,6 +392,8 @@ export default function EmployersPage() {
       maritalStatus: '',
       nationality: '',
       profession: '',
+      bloodGroup: '',
+      religion: '',
       // Registration
       registrationNumber: '',
       taxId: '',
@@ -387,6 +409,10 @@ export default function EmployersPage() {
       state: '',
       country: '',
       postalCode: '',
+      // Document URLs
+      photoUrl: '',
+      qidDocumentUrl: '',
+      passportDocumentUrl: '',
       // Passport/Visa Information
       passportNumber: '',
       passportExpiry: '',
@@ -671,6 +697,13 @@ export default function EmployersPage() {
                               <div className="text-sm text-gray-900">{getRatingStars(employer.overallRating)}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <button
+                                onClick={() => setPreviewModal({ isOpen: true, personId: employer.id })}
+                                className="text-blue-600 hover:text-blue-900 mr-3"
+                                title="Preview Employer"
+                              >
+                                <Eye className="w-4 h-4 inline-block" />
+                              </button>
                               <button
                                 onClick={() => handleEdit(employer)}
                                 className="text-blue-600 hover:text-blue-900 mr-3"
@@ -1092,10 +1125,88 @@ export default function EmployersPage() {
                             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Blood Group</label>
+                          <select
+                            name="bloodGroup"
+                            value={formData.bloodGroup}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Religion</label>
+                          <input
+                            type="text"
+                            name="religion"
+                            value={formData.religion}
+                            onChange={handleInputChange}
+                            placeholder="e.g., Islam, Christianity, etc."
+                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
+
+                {/* Documents & Photos (for Individual Employers) */}
+                {formData.employerType === 'INDIVIDUAL' && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Documents & Photos</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Personal Photo URL (Dropbox Link)
+                        </label>
+                        <input
+                          type="url"
+                          name="photoUrl"
+                          value={formData.photoUrl}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="https://www.dropbox.com/..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          QID Document URL (Dropbox Link)
+                        </label>
+                        <input
+                          type="url"
+                          name="qidDocumentUrl"
+                          value={formData.qidDocumentUrl}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="https://www.dropbox.com/..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Passport Document URL (Dropbox Link)
+                        </label>
+                        <input
+                          type="url"
+                          name="passportDocumentUrl"
+                          value={formData.passportDocumentUrl}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="https://www.dropbox.com/..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Contact Information */}
                 <div className="space-y-4">
@@ -1442,6 +1553,14 @@ export default function EmployersPage() {
             </div>
           </div>
         )}
+
+        {/* Preview Modal */}
+        <PersonPreviewModal
+          isOpen={previewModal.isOpen}
+          onClose={() => setPreviewModal({ isOpen: false })}
+          personId={previewModal.personId}
+          personType="EMPLOYER"
+        />
       </div>
     </DashboardLayout>
   )

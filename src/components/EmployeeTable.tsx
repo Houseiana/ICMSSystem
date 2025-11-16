@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Employee } from '@/types'
+import { Eye } from 'lucide-react'
 
 interface EmployeeTableProps {
   employees: any[]
@@ -9,6 +10,7 @@ interface EmployeeTableProps {
   onEdit: (employee: any) => void
   onDelete: (employee: any) => void
   onView: (employee: any) => void
+  onPreview?: (employee: any) => void
 }
 
 export default function EmployeeTable({
@@ -16,7 +18,8 @@ export default function EmployeeTable({
   loading,
   onEdit,
   onDelete,
-  onView
+  onView,
+  onPreview
 }: EmployeeTableProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
@@ -187,6 +190,15 @@ export default function EmployeeTable({
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
+                      {onPreview && (
+                        <button
+                          onClick={() => onPreview(employee)}
+                          className="text-blue-600 hover:text-blue-900 transition-colors"
+                          title="Preview"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      )}
                       <button
                         onClick={() => onView(employee)}
                         className="text-blue-600 hover:text-blue-900 transition-colors"
