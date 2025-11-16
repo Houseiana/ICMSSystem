@@ -180,7 +180,12 @@ export async function PUT(
       status,
       lastContactDate,
       nextReviewDate,
-      supervisorId
+      supervisorId,
+
+      // Document URLs
+      photoUrl,
+      qidDocumentUrl,
+      passportDocumentUrl
     } = body
 
     if (!firstName || !lastName) {
@@ -345,7 +350,12 @@ export async function PUT(
         status: status || 'ACTIVE',
         lastContactDate: lastContactDate ? new Date(lastContactDate) : null,
         nextReviewDate: nextReviewDate ? new Date(nextReviewDate) : null,
-        supervisorId
+        supervisorId,
+
+        // Document URLs
+        photoUrl,
+        qidDocumentUrl,
+        passportDocumentUrl
       },
       include: {
         supervisor: {

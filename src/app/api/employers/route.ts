@@ -98,8 +98,14 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    // Extract contacts separately to avoid passing them in the main data
-    const { contacts, ...employerData } = body
+    // Extract contacts and document URLs from body
+    const {
+      contacts,
+      photoUrl,
+      qidDocumentUrl,
+      passportDocumentUrl,
+      ...employerData
+    } = body
 
     // Convert empty strings to null for all fields
     Object.keys(employerData).forEach(key => {
@@ -215,6 +221,9 @@ export async function POST(request: NextRequest) {
     const employer = await prisma.employer.create({
       data: {
         ...employerData,
+        photoUrl,
+        qidDocumentUrl,
+        passportDocumentUrl,
         contacts: contactsData ? {
           create: contactsData
         } : undefined

@@ -94,6 +94,11 @@ export async function PUT(
       visaStatus,
       visaExpiry,
 
+      // Document URLs
+      photoUrl,
+      qidDocumentUrl,
+      passportDocumentUrl,
+
       // Emergency Contacts
       emergencyContact1Name,
       emergencyContact1Relation,
@@ -221,6 +226,9 @@ export async function PUT(
         licenseExpiry: licenseExpiry ? new Date(licenseExpiry) : null,
         visaStatus,
         visaExpiry: visaExpiry ? new Date(visaExpiry) : null,
+        photoUrl,
+        qidDocumentUrl,
+        passportDocumentUrl,
         emergencyContact1Name,
         emergencyContact1Relation,
         emergencyContact1Phone,

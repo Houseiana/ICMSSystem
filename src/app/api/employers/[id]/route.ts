@@ -58,8 +58,14 @@ export async function PUT(
       )
     }
 
-    // Separate contacts from employer data
-    const { contacts, ...employerData } = body
+    // Separate contacts and document URLs from employer data
+    const {
+      contacts,
+      photoUrl,
+      qidDocumentUrl,
+      passportDocumentUrl,
+      ...employerData
+    } = body
 
     // Generate full name for individual employers
     if (employerData.employerType === 'INDIVIDUAL' && employerData.firstName && employerData.lastName) {
@@ -83,7 +89,12 @@ export async function PUT(
     // Update employer
     const employer = await prisma.employer.update({
       where: { id },
-      data: employerData,
+      data: {
+        ...employerData,
+        photoUrl,
+        qidDocumentUrl,
+        passportDocumentUrl
+      },
       include: {
         contacts: {
           orderBy: [
