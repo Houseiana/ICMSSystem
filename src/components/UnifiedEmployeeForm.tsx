@@ -684,19 +684,35 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
                         )}
                       </select>
                       {this.state.employers.length === 0 && !this.state.loadingEmployers && (
-                        <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
+                        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded">
                           <p className="text-sm text-red-700 font-medium">
                             ⚠️ No employers found! Please add employers first:
                           </p>
                           <p className="text-xs text-red-600 mt-1">
                             Go to Dashboard → Employers → Add New Employer
                           </p>
+                          <button
+                            type="button"
+                            onClick={this.fetchEmployers}
+                            className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                          >
+                            🔄 Refresh Employer List
+                          </button>
                         </div>
                       )}
                       {this.state.employers.length > 0 && (
-                        <p className="text-xs text-blue-600 mt-1">
-                          ℹ️ Found {this.state.employers.length} employer(s) available for selection
-                        </p>
+                        <div className="mt-1 flex items-center justify-between">
+                          <p className="text-xs text-blue-600">
+                            ℹ️ Found {this.state.employers.length} employer(s) available for selection
+                          </p>
+                          <button
+                            type="button"
+                            onClick={this.fetchEmployers}
+                            className="px-2 py-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                          >
+                            🔄 Refresh
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
