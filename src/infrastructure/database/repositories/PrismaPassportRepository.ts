@@ -123,8 +123,8 @@ export class PrismaPassportRepository implements IPassportRepository {
       where.nationality = filters.nationality
     }
 
-    if (filters.ownerType) {
-      where.ownerType = filters.ownerType
+    if (filters.personType) {
+      where.ownerType = filters.personType
     }
 
     if (filters.status) {
