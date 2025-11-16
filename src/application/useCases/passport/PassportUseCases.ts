@@ -119,26 +119,43 @@ export class CreatePassportUseCase {
     // Create passport entity with required fields
     const passport: IPassport = {
       id: 0,
-      ...request,
-      // Owner fields
-      ownerType: request.ownerType || 'EMPLOYEE',
-      ownerId: request.ownerId || 0,
-      ownerName: request.ownerName || '',
+      // Owner fields (required)
+      ownerType: request.personType,
+      ownerId: request.personId || 0,
+      ownerName: `${request.firstName} ${request.lastName}`,
       // Required passport fields
+      passportNumber: request.passportNumber,
+      issuingCountry: request.issuingCountry,
       issuanceDate: request.issueDate,
-      passportType: request.passportType || 'REGULAR',
-      status: request.status || 'ACTIVE',
-      // Required fields with defaults
-      currentLocation: request.currentLocation || 'OFFICE',
-      lastLocationUpdate: new Date(),
+      expiryDate: request.expiryDate,
+      passportType: 'REGULAR',
+      // Personal information from passport (required)
+      firstNameOnPassport: request.firstName,
+      lastNameOnPassport: request.lastName,
+      dateOfBirth: request.dateOfBirth,
+      placeOfBirth: request.placeOfBirth,
+      gender: request.gender,
+      // Passport status (required)
+      status: request.status,
       isActive: true,
+      // Physical location tracking (required)
+      currentLocation: 'OFFICE',
+      lastLocationUpdate: new Date(),
+      // Representative information (required booleans)
       withMainRepresentative: false,
       withMinorRepresentative: false,
+      // Security features (required booleans)
       chipEnabled: false,
       biometricData: false,
+      // Renewal information (required)
       renewalEligible: false,
+      // Verification (required)
       verificationStatus: 'PENDING',
       sanctionsCheck: false,
+      // Optional fields
+      issueLocation: request.issuingAuthority,
+      publicNotes: request.notes,
+      // System fields
       createdAt: new Date(),
       updatedAt: new Date()
     }

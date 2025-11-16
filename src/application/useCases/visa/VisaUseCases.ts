@@ -139,30 +139,62 @@ export class CreateVisaUseCase {
     // Create visa entity with required fields
     const visa: IVisa = {
       id: 0,
-      ...request,
-      // Required fields with defaults
+      // Person information (required)
+      personType: request.personType,
+      personId: request.personId || 0,
+      personName: `${request.firstName} ${request.lastName}`,
+      personNationality: request.nationality,
+      // Visa destination country (required)
+      destinationCountry: request.destinationCountry,
       countryIcon: '',
       countryFullName: request.destinationCountry,
+      // Visa status (required)
+      visaStatus: request.status,
+      // Visa details
+      visaNumber: request.visaNumber,
+      issuanceDate: request.issueDate,
+      expiryDate: request.expiryDate,
+      issuanceLocation: request.placeOfIssue,
+      // Duration and stay (required)
       lengthType: 'DAYS',
       stayDurationType: 'SINGLE',
+      // Visa category and type
+      visaCategory: request.visaCategory,
+      visaType: request.visaType,
       entries: 'SINGLE',
+      // Application information (required)
       feeCurrency: 'USD',
+      // Supporting documents (required booleans)
       photoRequired: false,
       biometricsRequired: false,
       interviewRequired: false,
+      // Travel information (required booleans)
+      purposeOfTravel: request.purposeOfVisit,
       invitationLetter: false,
+      // Financial information (required booleans)
       bankStatement: false,
       sponsorSupport: false,
       insuranceCoverage: false,
+      // Previous travel history (required booleans)
       refusedBefore: false,
+      // Processing status (required)
       applicationStatus: 'PENDING',
+      // Visa status tracking (required)
       isActive: true,
+      // Rejection information (required booleans)
       appealPossible: false,
+      // Collection/Delivery (required)
       passportStatus: 'VALID',
+      // Renewal information (required)
       renewalEligible: false,
+      // Additional information (required booleans)
       vaccinationRequired: false,
       quarantineRequired: false,
+      // Internal tracking (required)
       priority: 'NORMAL',
+      // Optional fields
+      sponsorInformation: request.sponsorName,
+      // System fields
       createdAt: new Date(),
       updatedAt: new Date()
     }
