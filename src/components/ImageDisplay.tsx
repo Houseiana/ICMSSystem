@@ -30,23 +30,48 @@ export default function ImageDisplay({
   const getDirectImageUrl = (url: string | null | undefined): string | null => {
     if (!url) return null
 
+    // Trim whitespace
+    url = url.trim()
+
     // If it's a Dropbox link, convert it to direct download
     if (url.includes('dropbox.com')) {
-      // Replace www.dropbox.com with dl.dropboxusercontent.com
-      // and ensure it has dl=1 or raw=1 parameter
-      let directUrl = url.replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+      let directUrl = url
 
-      // If it's still using dropbox.com domain, use the dl=1 parameter
-      if (directUrl.includes('dropbox.com')) {
-        if (directUrl.includes('?')) {
-          directUrl = directUrl.split('?')[0] + '?dl=1'
-        } else {
-          directUrl += '?dl=1'
-        }
+      // Handle different Dropbox URL formats:
+      // 1. https://www.dropbox.com/s/xxxxx/filename?dl=0
+      // 2. https://www.dropbox.com/scl/fi/xxxxx/filename?rlkey=xxxxx&dl=0
+      // 3. https://dl.dropboxusercontent.com/xxxxx (already direct)
+
+      // If already using dl.dropboxusercontent.com, return as is
+      if (directUrl.includes('dl.dropboxusercontent.com')) {
+        return directUrl
       }
 
-      // Remove dl=0 if present and replace with dl=1
-      directUrl = directUrl.replace('dl=0', 'dl=1')
+      // For share links with /s/ or /scl/
+      if (directUrl.includes('/s/') || directUrl.includes('/scl/')) {
+        // Replace dl=0 with raw=1 for direct image access
+        if (directUrl.includes('dl=0')) {
+          directUrl = directUrl.replace('dl=0', 'raw=1')
+        } else if (directUrl.includes('?')) {
+          // Add raw=1 if there are already query params
+          directUrl += '&raw=1'
+        } else {
+          // Add raw=1 as first query param
+          directUrl += '?raw=1'
+        }
+      } else {
+        // For other formats, try www.dropbox.com -> dl.dropboxusercontent.com
+        directUrl = directUrl.replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+
+        // Ensure dl=1 parameter
+        if (!directUrl.includes('dl=1')) {
+          if (directUrl.includes('?')) {
+            directUrl = directUrl.split('?')[0] + '?dl=1'
+          } else {
+            directUrl += '?dl=1'
+          }
+        }
+      }
 
       return directUrl
     }
@@ -88,6 +113,11 @@ export default function ImageDisplay({
       <div className={`${containerClass} flex flex-col items-center justify-center bg-red-50 border-red-200`}>
         <AlertCircle className={`${iconSizes[size]} text-red-400 mb-2`} />
         <p className="text-xs text-red-600 text-center px-2">Failed to load image</p>
+        {process.env.NODE_ENV === 'development' && directImageUrl && (
+          <p className="text-xs text-gray-500 text-center px-2 mt-1 break-all">
+            Tried: {directImageUrl.substring(0, 50)}...
+          </p>
+        )}
       </div>
     )
   }
