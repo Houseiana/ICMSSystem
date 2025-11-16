@@ -120,6 +120,14 @@ export class CreatePassportUseCase {
     const passport: IPassport = {
       id: 0,
       ...request,
+      // Owner fields
+      ownerType: request.ownerType || 'EMPLOYEE',
+      ownerId: request.ownerId || 0,
+      ownerName: request.ownerName || '',
+      // Required passport fields
+      issuanceDate: request.issueDate,
+      passportType: request.passportType || 'REGULAR',
+      status: request.status || 'ACTIVE',
       // Required fields with defaults
       currentLocation: request.currentLocation || 'OFFICE',
       lastLocationUpdate: new Date(),
