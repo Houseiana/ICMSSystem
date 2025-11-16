@@ -127,16 +127,12 @@ export class EmployeeController {
    */
   static async delete(request: NextRequest, id: number): Promise<NextResponse> {
     try {
-      // Check if soft delete is requested (default: true)
-      const { searchParams } = new URL(request.url)
-      const soft = searchParams.get('soft') !== 'false'
-
       // Get repository from factory
       const repository = RepositoryFactory.getEmployeeRepository()
 
       // Create and execute use case
       const useCase = new DeleteEmployeeUseCase(repository)
-      await useCase.execute(id, soft)
+      await useCase.execute(id)
 
       return NextResponse.json({ message: 'Employee deleted successfully' }, { status: 200 })
 
