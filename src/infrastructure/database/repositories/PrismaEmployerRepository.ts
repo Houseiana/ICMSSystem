@@ -177,7 +177,7 @@ export class PrismaEmployerRepository implements IEmployerRepository {
   async findByEmail(email: string): Promise<IEmployer | null> {
     const employer = await prisma.employer.findFirst({
       where: {
-        email: {
+        primaryEmail: {
           equals: email,
           mode: 'insensitive'
         }

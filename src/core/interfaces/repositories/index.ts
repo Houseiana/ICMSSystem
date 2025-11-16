@@ -2,25 +2,25 @@
  * Repository interfaces barrel export
  * Provides centralized access to all repository interfaces
  */
-export { IBaseRepository } from './IBaseRepository'
-export {
+export type { IBaseRepository } from './IBaseRepository'
+export type {
   IEmployeeRepository,
-  type IEmployee,
-  type EmployeeSearchFilters
+  IEmployee,
+  EmployeeSearchFilters
 } from './IEmployeeRepository'
-export {
+export type {
   IEmployerRepository,
-  type IEmployer,
-  type EmployerSearchFilters
+  IEmployer,
+  EmployerSearchFilters
 } from './IEmployerRepository'
-export {
+export type {
   IPassportRepository,
-  type IPassport,
-  type PassportSearchFilters,
-  type IPassportEntitySummary
+  IPassport,
+  PassportSearchFilters,
+  IPassportEntitySummary
 } from './IPassportRepository'
-export {
+export type {
   IVisaRepository,
-  type IVisa,
-  type VisaSearchFilters
+  IVisa,
+  VisaSearchFilters
 } from './IVisaRepository'
