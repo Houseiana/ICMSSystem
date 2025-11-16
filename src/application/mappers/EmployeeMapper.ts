@@ -46,19 +46,19 @@ export class EmployeeMapper {
       maritalStatus: employee.maritalStatus,
       terminationDate: employee.terminationDate ? employee.terminationDate.toISOString() : null,
       bankName: employee.bankName,
-      accountNumber: employee.accountNumber,
+      accountNumber: employee.bankAccount,
       taxId: employee.taxId,
       socialSecurityNumber: employee.socialSecurityNumber,
-      emergencyContactName: employee.emergencyContactName,
-      emergencyContactPhone: employee.emergencyContactPhone,
+      emergencyContactName: employee.emergencyContact1Name,
+      emergencyContactPhone: employee.emergencyContact1Phone,
       address: {
-        street: employee.street,
+        street: employee.currentAddress,
         city: employee.city,
         state: employee.state,
         postalCode: employee.postalCode,
         country: employee.country
       },
-      notes: employee.notes
+      notes: null
     }
   }
 
