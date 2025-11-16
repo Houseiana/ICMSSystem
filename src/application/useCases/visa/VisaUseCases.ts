@@ -136,10 +136,33 @@ export class CreateVisaUseCase {
       throw ValidationException.fromFieldError('expiryDate', 'Expiry date must be after issue date')
     }
 
-    // Create visa entity
+    // Create visa entity with required fields
     const visa: IVisa = {
       id: 0,
       ...request,
+      // Required fields with defaults
+      countryIcon: '',
+      countryFullName: request.destinationCountry,
+      lengthType: 'DAYS',
+      stayDurationType: 'SINGLE',
+      entries: 'SINGLE',
+      feeCurrency: 'USD',
+      photoRequired: false,
+      biometricsRequired: false,
+      interviewRequired: false,
+      invitationLetter: false,
+      bankStatement: false,
+      sponsorSupport: false,
+      insuranceCoverage: false,
+      refusedBefore: false,
+      applicationStatus: 'PENDING',
+      isActive: true,
+      appealPossible: false,
+      passportStatus: 'VALID',
+      renewalEligible: false,
+      vaccinationRequired: false,
+      quarantineRequired: false,
+      priority: 'NORMAL',
       createdAt: new Date(),
       updatedAt: new Date()
     }
@@ -264,7 +287,7 @@ export class DeleteVisaUseCase {
       throw new NotFoundException('Visa', id)
     }
 
-    await this.visaRepository.update(id, { status: 'EXPIRED' })
+    await this.visaRepository.update(id, { visaStatus: 'EXPIRED' })
   }
 }
 

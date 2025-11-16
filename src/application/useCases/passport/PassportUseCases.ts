@@ -116,11 +116,21 @@ export class CreatePassportUseCase {
       throw ValidationException.fromFieldError('expiryDate', 'Expiry date must be after issue date')
     }
 
-    // Generate full name
-    // Create passport entity
+    // Create passport entity with required fields
     const passport: IPassport = {
       id: 0,
       ...request,
+      // Required fields with defaults
+      currentLocation: request.currentLocation || 'OFFICE',
+      lastLocationUpdate: new Date(),
+      isActive: true,
+      withMainRepresentative: false,
+      withMinorRepresentative: false,
+      chipEnabled: false,
+      biometricData: false,
+      renewalEligible: false,
+      verificationStatus: 'PENDING',
+      sanctionsCheck: false,
       createdAt: new Date(),
       updatedAt: new Date()
     }
