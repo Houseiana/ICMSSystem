@@ -526,6 +526,36 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
     })
   }
 
+  // Travel History Management
+  addTravelHistory = () => {
+    this.setState({
+      travelHistory: [
+        ...this.state.travelHistory,
+        {
+          country: '',
+          dateOfEntry: '',
+          dateOfExit: '',
+          purposeOfTravel: '',
+          accompanyingPerson: ''
+        }
+      ]
+    })
+  }
+
+  removeTravelHistory = (index: number) => {
+    const newTravelHistory = this.state.travelHistory.filter((_, i) => i !== index)
+    this.setState({ travelHistory: newTravelHistory })
+  }
+
+  updateTravelHistory = (index: number, field: keyof TravelHistoryEntry, value: string) => {
+    const newTravelHistory = [...this.state.travelHistory]
+    newTravelHistory[index] = {
+      ...newTravelHistory[index],
+      [field]: value
+    }
+    this.setState({ travelHistory: newTravelHistory })
+  }
+
   handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (this.props.onSave) {
@@ -988,8 +1018,215 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
                 )}
               </div>
 
-              {/* Continue with all other optional sections... */}
-              {/* For brevity, showing just the structure. All other sections follow the same pattern */}
+              {/* QID (Qatar ID) Information */}
+              <div className="border-b border-gray-200 pb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <span className="mr-2">🆔</span> QID (Qatar ID) Information <span className="ml-2 text-sm text-green-600">(Optional)</span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">QID Number</label>
+                    <input type="text" name="qidNumber" value={formData.qidNumber} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" placeholder="Enter QID Number" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">QID Issue Date</label>
+                    <input type="date" name="qidIssueDate" value={formData.qidIssueDate} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">QID Expiry Date</label>
+                    <input type="date" name="qidExpiryDate" value={formData.qidExpiryDate} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">QID Issue Location</label>
+                    <input type="text" name="qidLocation" value={formData.qidLocation} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" placeholder="Where was QID issued" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Family Information */}
+              <div className="border-b border-gray-200 pb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <span className="mr-2">👨‍👩‍👧‍👦</span> Family Information <span className="ml-2 text-sm text-green-600">(Optional)</span>
+                </h3>
+
+                {/* Father Details */}
+                <div className="mb-6 bg-blue-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-blue-800 mb-3">Father Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                      <input type="text" name="fatherFirstName" value={formData.fatherFirstName} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                      <input type="text" name="fatherLastName" value={formData.fatherLastName} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
+                      <input type="text" name="fatherNationality" value={formData.fatherNationality} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                      <input type="date" name="fatherDateOfBirth" value={formData.fatherDateOfBirth} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Place of Birth</label>
+                      <input type="text" name="fatherPlaceOfBirth" value={formData.fatherPlaceOfBirth} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" placeholder="City, Country" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mother Details */}
+                <div className="mb-6 bg-pink-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-pink-800 mb-3">Mother Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                      <input type="text" name="motherFirstName" value={formData.motherFirstName} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                      <input type="text" name="motherLastName" value={formData.motherLastName} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
+                      <input type="text" name="motherNationality" value={formData.motherNationality} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                      <input type="date" name="motherDateOfBirth" value={formData.motherDateOfBirth} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Place of Birth</label>
+                      <input type="text" name="motherPlaceOfBirth" value={formData.motherPlaceOfBirth} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" placeholder="City, Country" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Spouse Details */}
+                <div className="mb-6 bg-purple-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-purple-800 mb-3">Spouse Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                      <input type="text" name="spouseFirstName" value={formData.spouseFirstName} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                      <input type="text" name="spouseLastName" value={formData.spouseLastName} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
+                      <input type="text" name="spouseNationality" value={formData.spouseNationality} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                      <input type="date" name="spouseDateOfBirth" value={formData.spouseDateOfBirth} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Place of Birth</label>
+                      <input type="text" name="spousePlaceOfBirth" value={formData.spousePlaceOfBirth} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" placeholder="City, Country" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date of Marriage</label>
+                      <input type="date" name="spouseDateOfMarriage" value={formData.spouseDateOfMarriage} onChange={this.handleChange} disabled={mode === 'view'} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Travel History */}
+              <div className="border-b border-gray-200 pb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <span className="mr-2">✈️</span> Travel History <span className="ml-2 text-sm text-green-600">(Optional)</span>
+                </h3>
+
+                {this.state.travelHistory.length > 0 && this.state.travelHistory.map((travel, index) => (
+                  <div key={index} className="border border-gray-300 rounded-lg p-4 mb-4 bg-gray-50">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="text-sm font-semibold text-gray-700">Travel Entry #{index + 1}</h4>
+                      {mode !== 'view' && (
+                        <button
+                          type="button"
+                          onClick={() => this.removeTravelHistory(index)}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          ✕ Remove
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                        <input
+                          type="text"
+                          value={travel.country}
+                          onChange={(e) => this.updateTravelHistory(index, 'country', e.target.value)}
+                          disabled={mode === 'view'}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                          placeholder="Destination Country"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date of Entry</label>
+                        <input
+                          type="date"
+                          value={travel.dateOfEntry}
+                          onChange={(e) => this.updateTravelHistory(index, 'dateOfEntry', e.target.value)}
+                          disabled={mode === 'view'}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date of Exit</label>
+                        <input
+                          type="date"
+                          value={travel.dateOfExit}
+                          onChange={(e) => this.updateTravelHistory(index, 'dateOfExit', e.target.value)}
+                          disabled={mode === 'view'}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Purpose of Travel</label>
+                        <input
+                          type="text"
+                          value={travel.purposeOfTravel}
+                          onChange={(e) => this.updateTravelHistory(index, 'purposeOfTravel', e.target.value)}
+                          disabled={mode === 'view'}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                          placeholder="Business, Tourism, Family, etc."
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Accompanying Person</label>
+                        <input
+                          type="text"
+                          value={travel.accompanyingPerson}
+                          onChange={(e) => this.updateTravelHistory(index, 'accompanyingPerson', e.target.value)}
+                          disabled={mode === 'view'}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                          placeholder="Name of person traveling with"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {mode !== 'view' && (
+                  <button
+                    type="button"
+                    onClick={this.addTravelHistory}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                  >
+                    + Add Travel History Entry
+                  </button>
+                )}
+
+                {this.state.travelHistory.length === 0 && (
+                  <p className="text-gray-500 text-sm italic">No travel history added yet. Click the button above to add entries.</p>
+                )}
+              </div>
 
             </form>
           </div>
