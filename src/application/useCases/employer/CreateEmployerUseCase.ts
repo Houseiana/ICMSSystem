@@ -101,11 +101,11 @@ export class CreateEmployerUseCase {
       id: 0, // Will be set by repository
       ...request,
       fullName,
-      publiclyListed: request.publiclyListed ?? false,
-      pensionScheme: request.pensionScheme ?? false,
-      healthInsurance: request.healthInsurance ?? false,
-      riskLevel: request.riskLevel || 'LOW',
-      preferredContactMethod: request.preferredContactMethod || 'EMAIL',
+      publiclyListed: false,
+      pensionScheme: false,
+      healthInsurance: false,
+      riskLevel: 'LOW',
+      preferredContactMethod: 'EMAIL',
       createdAt: new Date(),
       updatedAt: new Date()
     }
