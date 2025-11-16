@@ -263,10 +263,19 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
   fetchEmployers = async () => {
     try {
       this.setState({ loadingEmployers: true })
+      console.log('Fetching employers from /api/employers/list...')
       const response = await fetch('/api/employers/list')
+      console.log('Employers response status:', response.status)
+
       if (response.ok) {
         const data = await response.json()
+        console.log('Employers data received:', data)
+        console.log('Number of employers:', data.employers?.length || 0)
         this.setState({ employers: data.employers || [] })
+      } else {
+        console.error('Failed to fetch employers:', response.status, response.statusText)
+        const errorData = await response.json().catch(() => null)
+        console.error('Error details:', errorData)
       }
     } catch (error) {
       console.error('Error fetching employers:', error)
@@ -276,6 +285,11 @@ export default class UnifiedEmployeeForm extends Component<EmployeeFormProps, Fo
   }
 
   componentDidUpdate(prevProps: EmployeeFormProps) {
+    // Refetch employers when form opens
+    if (this.props.isOpen && !prevProps.isOpen) {
+      this.fetchEmployers()
+    }
+
     if (this.props.employee && this.props.isOpen &&
         (prevProps.employee !== this.props.employee || prevProps.isOpen !== this.props.isOpen)) {
       this.populateFormData()
