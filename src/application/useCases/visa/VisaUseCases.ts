@@ -136,14 +136,10 @@ export class CreateVisaUseCase {
       throw ValidationException.fromFieldError('expiryDate', 'Expiry date must be after issue date')
     }
 
-    // Generate full name
-    const fullName = this.generateFullName(request.firstName, request.middleName, request.lastName)
-
     // Create visa entity
     const visa: IVisa = {
       id: 0,
       ...request,
-      fullName,
       createdAt: new Date(),
       updatedAt: new Date()
     }
@@ -228,22 +224,8 @@ export class UpdateVisaUseCase {
       }
     }
 
-    // Generate full name if name fields are updated
-    let fullName: string | undefined
-    if (request.firstName || request.lastName) {
-      const firstName = request.firstName || existing.firstName
-      const lastName = request.lastName || existing.lastName
-      const middleName = request.middleName !== undefined ? request.middleName : existing.middleName
-
-      const parts = [firstName]
-      if (middleName?.trim()) parts.push(middleName)
-      parts.push(lastName)
-      fullName = parts.join(' ').trim()
-    }
-
     const updateData: Partial<IVisa> = {
-      ...request,
-      ...(fullName && { fullName })
+      ...request
     }
 
     return await this.visaRepository.update(id, updateData)

@@ -117,13 +117,10 @@ export class CreatePassportUseCase {
     }
 
     // Generate full name
-    const fullName = this.generateFullName(request.firstName, request.middleName, request.lastName)
-
     // Create passport entity
     const passport: IPassport = {
       id: 0,
       ...request,
-      fullName,
       createdAt: new Date(),
       updatedAt: new Date()
     }
@@ -202,22 +199,8 @@ export class UpdatePassportUseCase {
       }
     }
 
-    // Generate full name if name fields are updated
-    let fullName: string | undefined
-    if (request.firstName || request.lastName) {
-      const firstName = request.firstName || existing.firstName
-      const lastName = request.lastName || existing.lastName
-      const middleName = request.middleName !== undefined ? request.middleName : existing.middleName
-
-      const parts = [firstName]
-      if (middleName?.trim()) parts.push(middleName)
-      parts.push(lastName)
-      fullName = parts.join(' ').trim()
-    }
-
     const updateData: Partial<IPassport> = {
-      ...request,
-      ...(fullName && { fullName })
+      ...request
     }
 
     return await this.passportRepository.update(id, updateData)
