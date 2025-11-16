@@ -254,7 +254,7 @@ export class PrismaVisaRepository implements IVisaRepository {
    */
   async findByStatus(status: string): Promise<IVisa[]> {
     const visas = await prisma.visa.findMany({
-      where: { status },
+      where: { visaStatus: status },
       orderBy: [
         { expiryDate: 'asc' },
         { personName: 'asc' }
