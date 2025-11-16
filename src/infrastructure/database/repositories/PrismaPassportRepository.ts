@@ -248,7 +248,7 @@ export class PrismaPassportRepository implements IPassportRepository {
     // Get all passports grouped by person
     const passports = await prisma.passport.findMany({
       where: {
-        ownerId: { not: null }
+        ownerId: { gt: 0 }
       },
       select: {
         ownerType: true,
