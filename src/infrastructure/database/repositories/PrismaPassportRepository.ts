@@ -29,8 +29,8 @@ export class PrismaPassportRepository implements IPassportRepository {
     const passports = await prisma.passport.findMany({
       orderBy: [
         { expiryDate: 'asc' },
-        { lastName: 'asc' },
-        { firstName: 'asc' }
+        { lastNameOnPassport: 'asc' },
+        { firstNameOnPassport: 'asc' }
       ]
     })
     return passports as IPassport[]
@@ -106,8 +106,8 @@ export class PrismaPassportRepository implements IPassportRepository {
     if (filters.search) {
       where.OR = [
         { passportNumber: { contains: filters.search, mode: 'insensitive' } },
-        { firstName: { contains: filters.search, mode: 'insensitive' } },
-        { lastName: { contains: filters.search, mode: 'insensitive' } },
+        { firstNameOnPassport: { contains: filters.search, mode: 'insensitive' } },
+        { lastNameOnPassport: { contains: filters.search, mode: 'insensitive' } },
         { middleName: { contains: filters.search, mode: 'insensitive' } },
         { fullName: { contains: filters.search, mode: 'insensitive' } },
         { issuingCountry: { contains: filters.search, mode: 'insensitive' } },
@@ -123,8 +123,8 @@ export class PrismaPassportRepository implements IPassportRepository {
       where.nationality = filters.nationality
     }
 
-    if (filters.personType) {
-      where.personType = filters.personType
+    if (filters.ownerType) {
+      where.ownerType = filters.ownerType
     }
 
     if (filters.status) {
@@ -145,8 +145,8 @@ export class PrismaPassportRepository implements IPassportRepository {
       where,
       orderBy: [
         { expiryDate: 'asc' },
-        { lastName: 'asc' },
-        { firstName: 'asc' }
+        { lastNameOnPassport: 'asc' },
+        { firstNameOnPassport: 'asc' }
       ]
     })
 
@@ -171,11 +171,11 @@ export class PrismaPassportRepository implements IPassportRepository {
   /**
    * Finds passports by person
    */
-  async findByPerson(personType: string, personId: number): Promise<IPassport[]> {
+  async findByPerson(ownerType: string, ownerId: number): Promise<IPassport[]> {
     const passports = await prisma.passport.findMany({
       where: {
-        personType,
-        personId
+        ownerType,
+        ownerId
       },
       orderBy: [
         { expiryDate: 'asc' }
@@ -235,7 +235,7 @@ export class PrismaPassportRepository implements IPassportRepository {
       where: { status },
       orderBy: [
         { expiryDate: 'asc' },
-        { lastName: 'asc' }
+        { lastNameOnPassport: 'asc' }
       ]
     })
     return passports as IPassport[]
@@ -248,27 +248,27 @@ export class PrismaPassportRepository implements IPassportRepository {
     // Get all passports grouped by person
     const passports = await prisma.passport.findMany({
       where: {
-        personId: { not: null }
+        ownerId: { not: null }
       },
       select: {
-        personType: true,
-        personId: true
+        ownerType: true,
+        ownerId: true
       }
     })
 
-    // Group by personType and personId
+    // Group by ownerType and ownerId
     const entityMap = new Map<string, { type: string; id: number; count: number }>()
 
     passports.forEach(p => {
-      if (p.personId) {
-        const key = `${p.personType}-${p.personId}`
+      if (p.ownerId) {
+        const key = `${p.ownerType}-${p.ownerId}`
         const existing = entityMap.get(key)
         if (existing) {
           existing.count++
         } else {
           entityMap.set(key, {
-            type: p.personType,
-            id: p.personId,
+            type: p.ownerType,
+            id: p.ownerId,
             count: 1
           })
         }

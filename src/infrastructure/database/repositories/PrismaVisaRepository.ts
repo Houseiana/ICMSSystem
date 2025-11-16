@@ -28,8 +28,8 @@ export class PrismaVisaRepository implements IVisaRepository {
     const visas = await prisma.visa.findMany({
       orderBy: [
         { expiryDate: 'asc' },
-        { lastName: 'asc' },
-        { firstName: 'asc' }
+        { personName: 'asc' },
+        { personName: 'asc' }
       ]
     })
     return visas as IVisa[]
@@ -105,8 +105,8 @@ export class PrismaVisaRepository implements IVisaRepository {
     if (filters.search) {
       where.OR = [
         { visaNumber: { contains: filters.search, mode: 'insensitive' } },
-        { firstName: { contains: filters.search, mode: 'insensitive' } },
-        { lastName: { contains: filters.search, mode: 'insensitive' } },
+        { personName: { contains: filters.search, mode: 'insensitive' } },
+        { personName: { contains: filters.search, mode: 'insensitive' } },
         { middleName: { contains: filters.search, mode: 'insensitive' } },
         { fullName: { contains: filters.search, mode: 'insensitive' } },
         { passportNumber: { contains: filters.search, mode: 'insensitive' } },
@@ -149,8 +149,8 @@ export class PrismaVisaRepository implements IVisaRepository {
       where,
       orderBy: [
         { expiryDate: 'asc' },
-        { lastName: 'asc' },
-        { firstName: 'asc' }
+        { personName: 'asc' },
+        { personName: 'asc' }
       ]
     })
 
@@ -257,7 +257,7 @@ export class PrismaVisaRepository implements IVisaRepository {
       where: { status },
       orderBy: [
         { expiryDate: 'asc' },
-        { lastName: 'asc' }
+        { personName: 'asc' }
       ]
     })
     return visas as IVisa[]
