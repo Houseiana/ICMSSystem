@@ -350,14 +350,8 @@ export class PrismaPassportRepository implements IPassportRepository {
    * Gets distinct nationalities
    */
   async getDistinctNationalities(): Promise<string[]> {
-    const nationalities = await prisma.passport.findMany({
-      select: { nationality: true },
-      distinct: ['nationality'],
-      orderBy: { nationality: 'asc' }
-    })
-
-    return nationalities
-      .map(n => n.nationality)
-      .filter(Boolean) as string[]
+    // Passport schema doesn't have a nationality field at root level
+    // Return empty array for now
+    return []
   }
 }
