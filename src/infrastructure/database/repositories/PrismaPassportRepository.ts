@@ -278,7 +278,7 @@ export class PrismaPassportRepository implements IPassportRepository {
     // Fetch full names from respective tables
     const entities: IPassportEntitySummary[] = []
 
-    for (const [_, entity] of entityMap) {
+    for (const [_, entity] of Array.from(entityMap)) {
       let fullName = 'Unknown'
 
       try {
