@@ -6,7 +6,7 @@ import { IEmployee } from '@core/interfaces/repositories'
  */
 export interface EmployeeResponseDto {
   id: number
-  fullName: string
+  fullName?: string | null
   firstName: string
   lastName: string
   middleName?: string | null
