@@ -109,7 +109,7 @@ export class PrismaVisaRepository implements IVisaRepository {
         { personName: { contains: filters.search, mode: 'insensitive' } },
         { middleName: { contains: filters.search, mode: 'insensitive' } },
         { fullName: { contains: filters.search, mode: 'insensitive' } },
-        { passportNumber: { contains: filters.search, mode: 'insensitive' } },
+        { visaNumber: { contains: filters.search, mode: 'insensitive' } },
         { nationality: { contains: filters.search, mode: 'insensitive' } },
         { visaType: { contains: filters.search, mode: 'insensitive' } }
       ]
@@ -191,10 +191,10 @@ export class PrismaVisaRepository implements IVisaRepository {
   /**
    * Finds visas by passport number
    */
-  async findByPassportNumber(passportNumber: string): Promise<IVisa[]> {
+  async findByPassportNumber(visaNumber: string): Promise<IVisa[]> {
     const visas = await prisma.visa.findMany({
       where: {
-        passportNumber: {
+        visaNumber: {
           equals: passportNumber,
           mode: 'insensitive'
         }
@@ -268,12 +268,12 @@ export class PrismaVisaRepository implements IVisaRepository {
    */
   async getStatsByStatus(): Promise<Record<string, number>> {
     const stats = await prisma.visa.groupBy({
-      by: ['status'],
+      by: ['visaStatus'],
       _count: true
     })
 
     return stats.reduce((acc, stat) => {
-      acc[stat.status] = stat._count
+      acc[stat.visaStatus] = stat._count
       return acc
     }, {} as Record<string, number>)
   }
