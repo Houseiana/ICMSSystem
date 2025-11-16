@@ -195,7 +195,7 @@ export class PrismaVisaRepository implements IVisaRepository {
     const visas = await prisma.visa.findMany({
       where: {
         visaNumber: {
-          equals: passportNumber,
+          equals: visaNumber,
           mode: 'insensitive'
         }
       },
