@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { X, User, FileText, MapPin, Phone, Mail, Calendar, Globe, Heart, Briefcase, GraduationCap, DollarSign, FileCheck, Image as ImageIcon, Users } from 'lucide-react'
+import ImageDisplay from './ImageDisplay'
 
 export type PersonType = 'EMPLOYEE' | 'EMPLOYER' | 'STAKEHOLDER' | 'TASK_HELPER'
 
@@ -314,17 +315,11 @@ export default function PersonPreviewModal({
       {/* Photo and Basic Info */}
       <div className="flex items-start gap-6">
         <div className="flex-shrink-0">
-          {personData?.photoUrl ? (
-            <img
-              src={personData.photoUrl}
-              alt="Profile"
-              className="w-32 h-32 rounded-lg object-cover border-2 border-gray-200"
-            />
-          ) : (
-            <div className="w-32 h-32 rounded-lg bg-gray-100 flex items-center justify-center">
-              <User className="w-16 h-16 text-gray-400" />
-            </div>
-          )}
+          <ImageDisplay
+            src={personData?.photoUrl}
+            alt={`${personData?.firstName || ''} ${personData?.lastName || 'Profile'}`}
+            size="md"
+          />
         </div>
         <div className="flex-1 grid grid-cols-2 gap-4">
           <InfoRow label="First Name" value={personData?.firstName} icon={User} />
