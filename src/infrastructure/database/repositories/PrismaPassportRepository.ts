@@ -297,9 +297,9 @@ export class PrismaPassportRepository implements IPassportRepository {
         } else if (entity.type === 'STAKEHOLDER') {
           const stakeholder = await prisma.stakeholder.findUnique({
             where: { id: entity.id },
-            select: { fullName: true }
+            select: { firstName: true, lastName: true }
           })
-          fullName = stakeholder?.fullName || 'Unknown'
+          fullName = stakeholder ? `${stakeholder.firstName} ${stakeholder.lastName}` : 'Unknown'
         }
       } catch (error) {
         // If entity not found, use default
