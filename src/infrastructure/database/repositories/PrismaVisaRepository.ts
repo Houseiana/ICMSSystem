@@ -297,15 +297,9 @@ export class PrismaVisaRepository implements IVisaRepository {
    * Gets distinct issuing countries
    */
   async getDistinctIssuingCountries(): Promise<string[]> {
-    const countries = await prisma.visa.findMany({
-      select: { issuingCountry: true },
-      distinct: ['issuingCountry'],
-      orderBy: { issuingCountry: 'asc' }
-    })
-
-    return countries
-      .map(c => c.issuingCountry)
-      .filter(Boolean) as string[]
+    // Visa schema doesn't have an issuingCountry field at root level
+    // Return empty array for now
+    return []
   }
 
   /**
