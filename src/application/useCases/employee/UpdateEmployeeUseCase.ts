@@ -103,7 +103,7 @@ export class UpdateEmployeeUseCase {
    */
   private generateFullName(
     firstName: string,
-    middleName: string | undefined,
+    middleName: string | null | undefined,
     lastName: string
   ): string {
     const parts = [firstName]
