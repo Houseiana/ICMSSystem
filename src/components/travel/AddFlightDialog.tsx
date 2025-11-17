@@ -9,6 +9,19 @@ interface PassengerData {
   personType: string
   personId: number
   personName?: string
+  personDetails?: {
+    fullName?: string
+    firstName?: string
+    lastName?: string
+    companyName?: string
+  }
+}
+
+interface PassengerDetails {
+  passengerId: number
+  seatNumber: string
+  mealPreference: string
+  specialAssistance: string
 }
 
 interface AddFlightDialogProps {
@@ -26,6 +39,7 @@ export function AddFlightDialog({
   const [loadingPassengers, setLoadingPassengers] = useState(true)
   const [passengers, setPassengers] = useState<PassengerData[]>([])
   const [selectedPassengers, setSelectedPassengers] = useState<number[]>([])
+  const [passengerDetails, setPassengerDetails] = useState<Record<number, PassengerDetails>>({})
 
   const [formData, setFormData] = useState({
     flightNumber: '',
@@ -72,6 +86,18 @@ export function AddFlightDialog({
           setPassengers(result.data)
           // Auto-select all passengers by default
           setSelectedPassengers(result.data.map((p: PassengerData) => p.id))
+
+          // Initialize passenger details
+          const initialDetails: Record<number, PassengerDetails> = {}
+          result.data.forEach((p: PassengerData) => {
+            initialDetails[p.id] = {
+              passengerId: p.id,
+              seatNumber: '',
+              mealPreference: '',
+              specialAssistance: ''
+            }
+          })
+          setPassengerDetails(initialDetails)
         }
       } catch (error) {
         console.error('Error fetching passengers:', error)
@@ -89,6 +115,26 @@ export function AddFlightDialog({
         ? prev.filter(id => id !== passengerId)
         : [...prev, passengerId]
     )
+  }
+
+  const updatePassengerDetail = (passengerId: number, field: keyof PassengerDetails, value: string) => {
+    setPassengerDetails(prev => ({
+      ...prev,
+      [passengerId]: {
+        ...prev[passengerId],
+        [field]: value
+      }
+    }))
+  }
+
+  const getPassengerName = (passenger: PassengerData): string => {
+    if (passenger.personDetails) {
+      return passenger.personDetails.fullName ||
+             passenger.personDetails.companyName ||
+             `${passenger.personDetails.firstName || ''} ${passenger.personDetails.lastName || ''}`.trim() ||
+             `${passenger.personType} #${passenger.personId}`
+    }
+    return passenger.personName || `${passenger.personType} #${passenger.personId}`
   }
 
   const handleSubmit = async () => {
@@ -114,9 +160,13 @@ export function AddFlightDialog({
           changedArrivalDate: formData.changedArrivalDate ? new Date(formData.changedArrivalDate) : null,
           passengers: selectedPassengers.map(pid => {
             const passenger = passengers.find(p => p.id === pid)
+            const details = passengerDetails[pid]
             return {
               personType: passenger?.personType,
-              personId: passenger?.personId
+              personId: passenger?.personId,
+              seatNumber: details?.seatNumber || null,
+              mealPreference: details?.mealPreference || null,
+              specialAssistance: details?.specialAssistance || null
             }
           })
         }),
@@ -594,26 +644,76 @@ export function AddFlightDialog({
                 <p className="text-sm text-gray-500 mt-2">Loading passengers...</p>
               </div>
             ) : passengers.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {passengers.map((passenger) => (
-                  <label
-                    key={passenger.id}
-                    className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedPassengers.includes(passenger.id)}
-                      onChange={() => togglePassenger(passenger.id)}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">
-                        {passenger.personName || `${passenger.personType} #${passenger.personId}`}
+              <div className="space-y-4">
+                {passengers.map((passenger) => {
+                  const isSelected = selectedPassengers.includes(passenger.id)
+                  const details = passengerDetails[passenger.id]
+
+                  return (
+                    <div
+                      key={passenger.id}
+                      className={`border rounded-lg p-4 transition-all ${
+                        isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => togglePassenger(passenger.id)}
+                          className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">
+                            {getPassengerName(passenger)}
+                          </div>
+                          <div className="text-xs text-gray-500 mb-3">{passenger.personType}</div>
+
+                          {isSelected && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3 pt-3 border-t">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                  Seat Number
+                                </label>
+                                <input
+                                  type="text"
+                                  value={details?.seatNumber || ''}
+                                  onChange={(e) => updatePassengerDetail(passenger.id, 'seatNumber', e.target.value)}
+                                  placeholder="e.g., 12A"
+                                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                  Meal Preference
+                                </label>
+                                <input
+                                  type="text"
+                                  value={details?.mealPreference || ''}
+                                  onChange={(e) => updatePassengerDetail(passenger.id, 'mealPreference', e.target.value)}
+                                  placeholder="e.g., Vegetarian"
+                                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                  Special Assistance
+                                </label>
+                                <input
+                                  type="text"
+                                  value={details?.specialAssistance || ''}
+                                  onChange={(e) => updatePassengerDetail(passenger.id, 'specialAssistance', e.target.value)}
+                                  placeholder="e.g., Wheelchair"
+                                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500">{passenger.personType}</div>
                     </div>
-                  </label>
-                ))}
+                  )
+                })}
               </div>
             ) : (
               <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
