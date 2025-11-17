@@ -115,6 +115,20 @@ export interface TripFlight {
   mealPreference: string | null
   status: string
   notes: string | null
+  // New flight enhancements
+  aircraftModel: string | null
+  specialRequests: string | null
+  tripType: string | null // ONE_WAY, ROUND_TRIP
+  fareTermsConditions: string | null
+  // Flight change tracking
+  changeStatus: string | null // NO_CHANGE, CHANGE_REQUESTED, CHANGED
+  changeDate: Date | null
+  changePrice: number | null
+  changedDepartureDate: Date | null
+  changedDepartureTime: string | null
+  changedArrivalDate: Date | null
+  changedArrivalTime: string | null
+  changeLeg: string | null // OUTBOUND, RETURN, BOTH
   createdAt: Date
   passengers?: TripFlightPassenger[]
 }
@@ -309,6 +323,7 @@ export interface TripHotelRoom {
   bedType: string | null // Twin bed, King bed
   connectedToRoom: string | null
   pricePerNight: number | null
+  includesBreakfast: boolean
   createdAt: Date
   assignments?: TripRoomAssignment[]
 }

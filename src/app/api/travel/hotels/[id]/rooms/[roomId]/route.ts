@@ -93,7 +93,8 @@ export async function PUT(
         guestNumbers: body.guestNumbers,
         bedType: body.bedType,
         connectedToRoom: body.connectedToRoom,
-        pricePerNight: body.pricePerNight
+        pricePerNight: body.pricePerNight,
+        includesBreakfast: body.includesBreakfast
       },
       include: {
         assignments: true

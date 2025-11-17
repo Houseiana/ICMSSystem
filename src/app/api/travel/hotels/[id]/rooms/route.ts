@@ -86,6 +86,7 @@ export async function POST(
         bedType: body.bedType,
         connectedToRoom: body.connectedToRoom,
         pricePerNight: body.pricePerNight,
+        includesBreakfast: body.includesBreakfast || false,
         ...(body.assignments && body.assignments.length > 0 && {
           assignments: {
             create: body.assignments.map((a: any) => ({

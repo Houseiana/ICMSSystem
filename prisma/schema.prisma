@@ -1484,6 +1484,20 @@ model TripFlight {
   mealPreference    String?
   status            String    @default("PENDING")
   notes             String?
+  // New flight enhancements
+  aircraftModel     String?   // Flight model/aircraft type
+  specialRequests   String?   // Special requests (meal, child seat, etc.)
+  tripType          String?   // ONE_WAY, ROUND_TRIP
+  fareTermsConditions String? // Fare class terms and conditions
+  // Flight change tracking
+  changeStatus      String?   // NO_CHANGE, CHANGE_REQUESTED, CHANGED
+  changeDate        DateTime? // When the change was made
+  changePrice       Float?    // Fee/price for the change
+  changedDepartureDate DateTime?
+  changedDepartureTime String?
+  changedArrivalDate   DateTime?
+  changedArrivalTime   String?
+  changeLeg         String?   // OUTBOUND, RETURN, BOTH (for round-trip changes)
   createdAt         DateTime  @default(now())
 
   travelRequest     TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
@@ -1572,6 +1586,7 @@ model TripHotelRoom {
   bedType           String?   // Twin bed, King bed
   connectedToRoom   String?   // Reference to connected room/suite
   pricePerNight     Float?
+  includesBreakfast Boolean   @default(false)
   createdAt         DateTime  @default(now())
 
   hotel             TripHotel @relation(fields: [tripHotelId], references: [id], onDelete: Cascade)

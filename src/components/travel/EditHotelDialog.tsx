@@ -14,6 +14,7 @@ interface RoomFormData {
   bedType: string
   connectedToRoom: string
   pricePerNight: number | null
+  includesBreakfast: boolean
 }
 
 interface EditHotelDialogProps {
@@ -57,6 +58,7 @@ export function EditHotelDialog({
       bedType: r.bedType || '',
       connectedToRoom: r.connectedToRoom || '',
       pricePerNight: r.pricePerNight,
+      includesBreakfast: r.includesBreakfast,
     })) || []
   )
 
@@ -74,6 +76,7 @@ export function EditHotelDialog({
         bedType: '',
         connectedToRoom: '',
         pricePerNight: null,
+        includesBreakfast: false,
       },
     ])
   }
@@ -502,6 +505,23 @@ export function EditHotelDialog({
                           className="text-sm font-medium text-gray-700"
                         >
                           Has Pantry
+                        </label>
+                      </div>
+
+                      {/* Includes Breakfast */}
+                      <div className="flex items-center gap-2 pt-8">
+                        <input
+                          type="checkbox"
+                          id={`breakfast-${index}`}
+                          checked={room.includesBreakfast}
+                          onChange={(e) => updateRoom(index, 'includesBreakfast', e.target.checked)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <label
+                          htmlFor={`breakfast-${index}`}
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Includes Breakfast
                         </label>
                       </div>
 

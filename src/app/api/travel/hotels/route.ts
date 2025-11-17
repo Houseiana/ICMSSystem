@@ -99,6 +99,7 @@ export async function POST(request: NextRequest) {
               bedType: r.bedType,
               connectedToRoom: r.connectedToRoom,
               pricePerNight: r.pricePerNight,
+              includesBreakfast: r.includesBreakfast || false,
               ...(r.assignments && r.assignments.length > 0 && {
                 assignments: {
                   create: r.assignments.map((a: any) => ({

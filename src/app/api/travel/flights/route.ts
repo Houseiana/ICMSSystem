@@ -84,6 +84,19 @@ export async function POST(request: NextRequest) {
         mealPreference: body.mealPreference,
         status: body.status || 'PENDING',
         notes: body.notes,
+        // New flight enhancements
+        aircraftModel: body.aircraftModel,
+        specialRequests: body.specialRequests,
+        tripType: body.tripType,
+        fareTermsConditions: body.fareTermsConditions,
+        changeStatus: body.changeStatus,
+        changeDate: body.changeDate ? new Date(body.changeDate) : null,
+        changePrice: body.changePrice,
+        changedDepartureDate: body.changedDepartureDate ? new Date(body.changedDepartureDate) : null,
+        changedDepartureTime: body.changedDepartureTime,
+        changedArrivalDate: body.changedArrivalDate ? new Date(body.changedArrivalDate) : null,
+        changedArrivalTime: body.changedArrivalTime,
+        changeLeg: body.changeLeg,
         // Add passengers if provided
         ...(body.passengers && body.passengers.length > 0 && {
           passengers: {

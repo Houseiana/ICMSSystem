@@ -168,6 +168,12 @@ export function HotelDetailsDialog({
                           {room.hasPantry ? 'Yes' : 'No'}
                         </span>
                       </div>
+                      <div>
+                        <span className="text-gray-500">Breakfast:</span>
+                        <span className="ml-2 text-gray-900">
+                          {room.includesBreakfast ? 'Included' : 'Not Included'}
+                        </span>
+                      </div>
                       {room.pricePerNight && (
                         <div>
                           <span className="text-gray-500">Price/Night:</span>

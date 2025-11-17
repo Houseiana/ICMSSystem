@@ -46,6 +46,19 @@ export function AddFlightDialog({
     mealPreference: '',
     status: 'PENDING',
     notes: '',
+    // New fields
+    aircraftModel: '',
+    specialRequests: '',
+    tripType: 'ONE_WAY',
+    fareTermsConditions: '',
+    changeStatus: 'NO_CHANGE',
+    changeDate: '',
+    changePrice: '',
+    changedDepartureDate: '',
+    changedDepartureTime: '',
+    changedArrivalDate: '',
+    changedArrivalTime: '',
+    changeLeg: '',
   })
 
   // Fetch passengers from the travel request
@@ -95,6 +108,10 @@ export function AddFlightDialog({
           price: formData.price ? parseFloat(formData.price) : null,
           departureDate: formData.departureDate ? new Date(formData.departureDate) : null,
           arrivalDate: formData.arrivalDate ? new Date(formData.arrivalDate) : null,
+          changeDate: formData.changeDate ? new Date(formData.changeDate) : null,
+          changePrice: formData.changePrice ? parseFloat(formData.changePrice) : null,
+          changedDepartureDate: formData.changedDepartureDate ? new Date(formData.changedDepartureDate) : null,
+          changedArrivalDate: formData.changedArrivalDate ? new Date(formData.changedArrivalDate) : null,
           passengers: selectedPassengers.map(pid => {
             const passenger = passengers.find(p => p.id === pid)
             return {
@@ -387,6 +404,179 @@ export function AddFlightDialog({
               />
             </div>
           </div>
+
+          {/* New Flight Enhancements */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Aircraft Model
+              </label>
+              <input
+                type="text"
+                value={formData.aircraftModel}
+                onChange={(e) => setFormData({ ...formData, aircraftModel: e.target.value })}
+                placeholder="e.g., Boeing 777"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Trip Type
+              </label>
+              <select
+                value={formData.tripType}
+                onChange={(e) => setFormData({ ...formData, tripType: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="ONE_WAY">One Way</option>
+                <option value="ROUND_TRIP">Round Trip</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Change Status
+              </label>
+              <select
+                value={formData.changeStatus}
+                onChange={(e) => setFormData({ ...formData, changeStatus: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="NO_CHANGE">No Change</option>
+                <option value="CHANGE_REQUESTED">Change Requested</option>
+                <option value="CHANGED">Changed</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Special Requests
+            </label>
+            <textarea
+              value={formData.specialRequests}
+              onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })}
+              placeholder="e.g., Wheelchair assistance, child seat, specific meals, etc."
+              rows={2}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Fare Class Terms & Conditions
+            </label>
+            <textarea
+              value={formData.fareTermsConditions}
+              onChange={(e) => setFormData({ ...formData, fareTermsConditions: e.target.value })}
+              placeholder="Enter fare class terms and conditions..."
+              rows={3}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          {/* Flight Change Details - Only show if change status is not NO_CHANGE */}
+          {formData.changeStatus !== 'NO_CHANGE' && (
+            <div className="border-t pt-6 space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Flight Change Details</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Change Date
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.changeDate}
+                    onChange={(e) => setFormData({ ...formData, changeDate: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Change Fee/Price
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.changePrice}
+                    onChange={(e) => setFormData({ ...formData, changePrice: e.target.value })}
+                    placeholder="e.g., 150.00"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Change Leg (for Round Trip)
+                  </label>
+                  <select
+                    value={formData.changeLeg}
+                    onChange={(e) => setFormData({ ...formData, changeLeg: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select...</option>
+                    <option value="OUTBOUND">Outbound</option>
+                    <option value="RETURN">Return</option>
+                    <option value="BOTH">Both</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    New Departure Date
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.changedDepartureDate}
+                    onChange={(e) => setFormData({ ...formData, changedDepartureDate: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    New Departure Time
+                  </label>
+                  <input
+                    type="time"
+                    value={formData.changedDepartureTime}
+                    onChange={(e) => setFormData({ ...formData, changedDepartureTime: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    New Arrival Date
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.changedArrivalDate}
+                    onChange={(e) => setFormData({ ...formData, changedArrivalDate: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    New Arrival Time
+                  </label>
+                  <input
+                    type="time"
+                    value={formData.changedArrivalTime}
+                    onChange={(e) => setFormData({ ...formData, changedArrivalTime: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Passengers Section */}
           <div className="border-t pt-6">
