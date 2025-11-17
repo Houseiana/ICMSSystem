@@ -300,8 +300,13 @@ export interface TripHotel {
 export interface TripHotelRoom {
   id: number
   tripHotelId: number
-  roomCategory: string
-  numberOfRooms: number
+  unitCategory: string // Suite, Room, Apartment, Penthouse, etc.
+  roomNumber: string | null
+  bathrooms: number | null
+  hasPantry: boolean
+  guestNumbers: number | null
+  bedType: string | null // Twin bed, King bed
+  connectedToRoom: string | null
   pricePerNight: number | null
   createdAt: Date
   assignments?: TripRoomAssignment[]
@@ -312,7 +317,6 @@ export interface TripRoomAssignment {
   tripHotelRoomId: number
   personType: PersonType
   personId: number
-  roomNumber: string | null
   createdAt: Date
 }
 

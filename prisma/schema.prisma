@@ -1563,8 +1563,13 @@ model TripHotel {
 model TripHotelRoom {
   id                Int       @id @default(autoincrement())
   tripHotelId       Int
-  roomCategory      String    // Standard, Deluxe, Suite, etc.
-  numberOfRooms     Int
+  unitCategory      String    // Suite, Room, Apartment, Penthouse, etc.
+  roomNumber        String?
+  bathrooms         Int?
+  hasPantry         Boolean   @default(false)
+  guestNumbers      Int?
+  bedType           String?   // Twin bed, King bed
+  connectedToRoom   String?   // Reference to connected room/suite
   pricePerNight     Float?
   createdAt         DateTime  @default(now())
 
@@ -1577,7 +1582,6 @@ model TripRoomAssignment {
   tripHotelRoomId   Int
   personType        String
   personId          Int
-  roomNumber        String?
   createdAt         DateTime  @default(now())
 
   hotelRoom         TripHotelRoom @relation(fields: [tripHotelRoomId], references: [id], onDelete: Cascade)

@@ -91,15 +91,19 @@ export async function POST(request: NextRequest) {
         ...(body.rooms && body.rooms.length > 0 && {
           rooms: {
             create: body.rooms.map((r: any) => ({
-              roomCategory: r.roomCategory,
-              numberOfRooms: r.numberOfRooms,
+              unitCategory: r.unitCategory,
+              roomNumber: r.roomNumber,
+              bathrooms: r.bathrooms,
+              hasPantry: r.hasPantry || false,
+              guestNumbers: r.guestNumbers,
+              bedType: r.bedType,
+              connectedToRoom: r.connectedToRoom,
               pricePerNight: r.pricePerNight,
               ...(r.assignments && r.assignments.length > 0 && {
                 assignments: {
                   create: r.assignments.map((a: any) => ({
                     personType: a.personType,
-                    personId: a.personId,
-                    roomNumber: a.roomNumber
+                    personId: a.personId
                   }))
                 }
               })

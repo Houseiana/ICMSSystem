@@ -7,6 +7,8 @@ import { SendDetailsDialog } from '@/components/travel/SendDetailsDialog'
 import { AddPassengerDialog } from '@/components/travel/AddPassengerDialog'
 import { AddFlightDialog } from '@/components/travel/AddFlightDialog'
 import { AddHotelDialog } from '@/components/travel/AddHotelDialog'
+import { HotelDetailsDialog } from '@/components/travel/HotelDetailsDialog'
+import { EditHotelDialog } from '@/components/travel/EditHotelDialog'
 import { AddEventDialog } from '@/components/travel/AddEventDialog'
 import { AddPrivateJetDialog } from '@/components/travel/AddPrivateJetDialog'
 import { AddTrainDialog } from '@/components/travel/AddTrainDialog'
@@ -54,6 +56,9 @@ export default function TravelRequestDetailPage({
   const [showAddCarWithDriverDialog, setShowAddCarWithDriverDialog] = useState(false)
   const [showAddEmbassyServiceDialog, setShowAddEmbassyServiceDialog] = useState(false)
   const [showAddHotelDialog, setShowAddHotelDialog] = useState(false)
+  const [selectedHotel, setSelectedHotel] = useState<any | null>(null)
+  const [showHotelDetailsDialog, setShowHotelDetailsDialog] = useState(false)
+  const [showEditHotelDialog, setShowEditHotelDialog] = useState(false)
   const [showAddEventDialog, setShowAddEventDialog] = useState(false)
   const [deletingItem, setDeletingItem] = useState<{type: string, id: number} | null>(null)
 
@@ -1041,11 +1046,17 @@ export default function TravelRequestDetailPage({
                     {request.hotels.map((hotel) => (
                       <div
                         key={hotel.id}
-                        className="p-4 border rounded-lg hover:bg-gray-50"
+                        className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-all"
+                        onClick={() => {
+                          setSelectedHotel(hotel)
+                          setShowHotelDetailsDialog(true)
+                        }}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <p className="font-medium">{hotel.hotelName}</p>
+                            <p className="font-medium text-blue-600 hover:text-blue-700">
+                              {hotel.hotelName}
+                            </p>
                             <p className="text-sm text-gray-600 mt-1">
                               {hotel.city}, {hotel.country}
                             </p>
@@ -1062,7 +1073,10 @@ export default function TravelRequestDetailPage({
                               {hotel.status}
                             </span>
                             <button
-                              onClick={() => handleDeleteHotel(hotel.id, hotel.hotelName)}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteHotel(hotel.id, hotel.hotelName)
+                              }}
                               disabled={deletingItem?.type === 'hotel' && deletingItem?.id === hotel.id}
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Delete hotel"
@@ -1224,6 +1238,42 @@ export default function TravelRequestDetailPage({
           onSuccess={() => {
             refetch()
             setShowAddHotelDialog(false)
+          }}
+        />
+      )}
+
+      {/* Hotel Details Dialog */}
+      {showHotelDetailsDialog && selectedHotel && (
+        <HotelDetailsDialog
+          hotel={selectedHotel}
+          onClose={() => {
+            setShowHotelDetailsDialog(false)
+            setSelectedHotel(null)
+          }}
+          onEdit={() => {
+            setShowHotelDetailsDialog(false)
+            setShowEditHotelDialog(true)
+          }}
+          onDelete={() => {
+            setShowHotelDetailsDialog(false)
+            handleDeleteHotel(selectedHotel.id, selectedHotel.hotelName)
+            setSelectedHotel(null)
+          }}
+        />
+      )}
+
+      {/* Edit Hotel Dialog */}
+      {showEditHotelDialog && selectedHotel && (
+        <EditHotelDialog
+          hotel={selectedHotel}
+          onClose={() => {
+            setShowEditHotelDialog(false)
+            setSelectedHotel(null)
+          }}
+          onSuccess={() => {
+            refetch()
+            setShowEditHotelDialog(false)
+            setSelectedHotel(null)
           }}
         />
       )}

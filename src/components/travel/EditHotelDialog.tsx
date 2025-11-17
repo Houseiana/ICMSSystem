@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Plus, Hotel, Trash2, DoorOpen } from 'lucide-react'
-// HotelStatus type removed - using string instead
+import { X, Save, Hotel, DoorOpen, Plus, Trash2 } from 'lucide-react'
+import { TripHotel, TripHotelRoom } from '@/types/travel'
 
 interface RoomFormData {
+  id?: number
   unitCategory: string
   roomNumber: string
   bathrooms: number | null
@@ -15,33 +16,51 @@ interface RoomFormData {
   pricePerNight: number | null
 }
 
-interface AddHotelDialogProps {
-  travelRequestId: number
+interface EditHotelDialogProps {
+  hotel: TripHotel
   onClose: () => void
   onSuccess: () => void
 }
 
-export function AddHotelDialog({
-  travelRequestId,
+export function EditHotelDialog({
+  hotel,
   onClose,
   onSuccess,
-}: AddHotelDialogProps) {
+}: EditHotelDialogProps) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    hotelName: '',
-    address: '',
-    city: '',
-    country: '',
-    phone: '',
-    email: '',
-    checkInDate: '',
-    checkOutDate: '',
-    confirmationNumber: '',
-    status: 'PENDING',
-    notes: '',
+    hotelName: hotel.hotelName,
+    address: hotel.address || '',
+    city: hotel.city || '',
+    country: hotel.country || '',
+    phone: hotel.phone || '',
+    email: hotel.email || '',
+    checkInDate: hotel.checkInDate
+      ? new Date(hotel.checkInDate).toISOString().split('T')[0]
+      : '',
+    checkOutDate: hotel.checkOutDate
+      ? new Date(hotel.checkOutDate).toISOString().split('T')[0]
+      : '',
+    confirmationNumber: hotel.confirmationNumber || '',
+    status: hotel.status,
+    notes: hotel.notes || '',
   })
 
-  const [rooms, setRooms] = useState<RoomFormData[]>([])
+  const [rooms, setRooms] = useState<RoomFormData[]>(
+    hotel.rooms?.map((r) => ({
+      id: r.id,
+      unitCategory: r.unitCategory,
+      roomNumber: r.roomNumber || '',
+      bathrooms: r.bathrooms,
+      hasPantry: r.hasPantry,
+      guestNumbers: r.guestNumbers,
+      bedType: r.bedType || '',
+      connectedToRoom: r.connectedToRoom || '',
+      pricePerNight: r.pricePerNight,
+    })) || []
+  )
+
+  const [deletedRoomIds, setDeletedRoomIds] = useState<number[]>([])
 
   const addRoom = () => {
     setRooms([
@@ -60,6 +79,10 @@ export function AddHotelDialog({
   }
 
   const removeRoom = (index: number) => {
+    const room = rooms[index]
+    if (room.id) {
+      setDeletedRoomIds([...deletedRoomIds, room.id])
+    }
     setRooms(rooms.filter((_, i) => i !== index))
   }
 
@@ -77,28 +100,55 @@ export function AddHotelDialog({
 
     setLoading(true)
     try {
-      const response = await fetch('/api/travel/hotels', {
-        method: 'POST',
+      // Update hotel details
+      const hotelResponse = await fetch(`/api/travel/hotels/${hotel.id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          travelRequestId,
           ...formData,
           checkInDate: formData.checkInDate ? new Date(formData.checkInDate) : null,
           checkOutDate: formData.checkOutDate ? new Date(formData.checkOutDate) : null,
-          rooms: rooms.length > 0 ? rooms : undefined,
         }),
       })
 
-      const result = await response.json()
+      const hotelResult = await hotelResponse.json()
 
-      if (result.success) {
-        onSuccess()
-        onClose()
-      } else {
-        alert(`Failed to add hotel: ${result.error}`)
+      if (!hotelResult.success) {
+        alert(`Failed to update hotel: ${hotelResult.error}`)
+        setLoading(false)
+        return
       }
+
+      // Delete removed rooms
+      for (const roomId of deletedRoomIds) {
+        await fetch(`/api/travel/hotels/${hotel.id}/rooms/${roomId}`, {
+          method: 'DELETE',
+        })
+      }
+
+      // Update or create rooms
+      for (const room of rooms) {
+        if (room.id) {
+          // Update existing room
+          await fetch(`/api/travel/hotels/${hotel.id}/rooms/${room.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(room),
+          })
+        } else {
+          // Create new room
+          await fetch(`/api/travel/hotels/${hotel.id}/rooms`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(room),
+          })
+        }
+      }
+
+      onSuccess()
+      onClose()
     } catch (error) {
-      alert('Error adding hotel. Please try again.')
+      alert('Error updating hotel. Please try again.')
       console.error(error)
     } finally {
       setLoading(false)
@@ -113,10 +163,10 @@ export function AddHotelDialog({
           <div>
             <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <Hotel className="w-6 h-6 text-blue-600" />
-              Add Hotel
+              Edit Hotel
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              Add hotel accommodation to this travel request
+              Update hotel accommodation details
             </p>
           </div>
           <button
@@ -144,9 +194,7 @@ export function AddHotelDialog({
 
           {/* Address */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Address
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
             <input
               type="text"
               value={formData.address}
@@ -188,9 +236,7 @@ export function AddHotelDialog({
           {/* Contact Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
               <input
                 type="tel"
                 value={formData.phone}
@@ -201,9 +247,7 @@ export function AddHotelDialog({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
               <input
                 type="email"
                 value={formData.email}
@@ -250,16 +294,16 @@ export function AddHotelDialog({
               <input
                 type="text"
                 value={formData.confirmationNumber}
-                onChange={(e) => setFormData({ ...formData, confirmationNumber: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, confirmationNumber: e.target.value })
+                }
                 placeholder="e.g., CONF123456"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
@@ -276,9 +320,7 @@ export function AddHotelDialog({
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notes
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -296,9 +338,7 @@ export function AddHotelDialog({
                   <DoorOpen className="w-5 h-5 text-blue-600" />
                   Rooms
                 </h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  Add room details for this hotel booking
-                </p>
+                <p className="text-sm text-gray-500 mt-1">Manage room details</p>
               </div>
               <button
                 type="button"
@@ -374,7 +414,13 @@ export function AddHotelDialog({
                           type="number"
                           min="0"
                           value={room.bathrooms || ''}
-                          onChange={(e) => updateRoom(index, 'bathrooms', e.target.value ? parseInt(e.target.value) : null)}
+                          onChange={(e) =>
+                            updateRoom(
+                              index,
+                              'bathrooms',
+                              e.target.value ? parseInt(e.target.value) : null
+                            )
+                          }
                           placeholder="e.g., 2"
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
@@ -389,7 +435,13 @@ export function AddHotelDialog({
                           type="number"
                           min="1"
                           value={room.guestNumbers || ''}
-                          onChange={(e) => updateRoom(index, 'guestNumbers', e.target.value ? parseInt(e.target.value) : null)}
+                          onChange={(e) =>
+                            updateRoom(
+                              index,
+                              'guestNumbers',
+                              e.target.value ? parseInt(e.target.value) : null
+                            )
+                          }
                           placeholder="e.g., 2"
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
@@ -424,7 +476,13 @@ export function AddHotelDialog({
                           min="0"
                           step="0.01"
                           value={room.pricePerNight || ''}
-                          onChange={(e) => updateRoom(index, 'pricePerNight', e.target.value ? parseFloat(e.target.value) : null)}
+                          onChange={(e) =>
+                            updateRoom(
+                              index,
+                              'pricePerNight',
+                              e.target.value ? parseFloat(e.target.value) : null
+                            )
+                          }
                           placeholder="e.g., 150.00"
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
@@ -439,7 +497,10 @@ export function AddHotelDialog({
                           onChange={(e) => updateRoom(index, 'hasPantry', e.target.checked)}
                           className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
-                        <label htmlFor={`pantry-${index}`} className="text-sm font-medium text-gray-700">
+                        <label
+                          htmlFor={`pantry-${index}`}
+                          className="text-sm font-medium text-gray-700"
+                        >
                           Has Pantry
                         </label>
                       </div>
@@ -482,12 +543,12 @@ export function AddHotelDialog({
             {loading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Adding...</span>
+                <span>Saving...</span>
               </>
             ) : (
               <>
-                <Plus className="w-4 h-4" />
-                <span>Add Hotel</span>
+                <Save className="w-4 h-4" />
+                <span>Save Changes</span>
               </>
             )}
           </button>
