@@ -1474,7 +1474,8 @@ model TripFlight {
   departureTime     String?
   arrivalDate       DateTime?
   arrivalTime       String?
-  class             String?
+  class             String?   // ECONOMY, PREMIUM_ECONOMY, BUSINESS, FIRST
+  price             Float?    // Fare price
   bookingReference  String?
   terminal          String?
   gate              String?

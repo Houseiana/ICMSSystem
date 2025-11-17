@@ -1,8 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { X, Plus, Plane } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { X, Plus, Plane, Users } from 'lucide-react'
 // FlightStatus and FlightClass types removed - using strings instead
+
+interface PassengerData {
+  id: number
+  personType: string
+  personId: number
+  personName?: string
+}
 
 interface AddFlightDialogProps {
   travelRequestId: number
@@ -16,6 +23,10 @@ export function AddFlightDialog({
   onSuccess,
 }: AddFlightDialogProps) {
   const [loading, setLoading] = useState(false)
+  const [loadingPassengers, setLoadingPassengers] = useState(true)
+  const [passengers, setPassengers] = useState<PassengerData[]>([])
+  const [selectedPassengers, setSelectedPassengers] = useState<number[]>([])
+
   const [formData, setFormData] = useState({
     flightNumber: '',
     airline: '',
@@ -26,6 +37,7 @@ export function AddFlightDialog({
     arrivalDate: '',
     arrivalTime: '',
     class: 'ECONOMY',
+    price: '',
     bookingReference: '',
     terminal: '',
     gate: '',
@@ -35,6 +47,36 @@ export function AddFlightDialog({
     status: 'PENDING',
     notes: '',
   })
+
+  // Fetch passengers from the travel request
+  useEffect(() => {
+    const fetchPassengers = async () => {
+      try {
+        const response = await fetch(`/api/travel/passengers?travelRequestId=${travelRequestId}`)
+        const result = await response.json()
+
+        if (result.success && result.data) {
+          setPassengers(result.data)
+          // Auto-select all passengers by default
+          setSelectedPassengers(result.data.map((p: PassengerData) => p.id))
+        }
+      } catch (error) {
+        console.error('Error fetching passengers:', error)
+      } finally {
+        setLoadingPassengers(false)
+      }
+    }
+
+    fetchPassengers()
+  }, [travelRequestId])
+
+  const togglePassenger = (passengerId: number) => {
+    setSelectedPassengers(prev =>
+      prev.includes(passengerId)
+        ? prev.filter(id => id !== passengerId)
+        : [...prev, passengerId]
+    )
+  }
 
   const handleSubmit = async () => {
     if (!formData.airline || !formData.departureAirport || !formData.arrivalAirport) {
@@ -50,8 +92,16 @@ export function AddFlightDialog({
         body: JSON.stringify({
           travelRequestId,
           ...formData,
+          price: formData.price ? parseFloat(formData.price) : null,
           departureDate: formData.departureDate ? new Date(formData.departureDate) : null,
           arrivalDate: formData.arrivalDate ? new Date(formData.arrivalDate) : null,
+          passengers: selectedPassengers.map(pid => {
+            const passenger = passengers.find(p => p.id === pid)
+            return {
+              personType: passenger?.personType,
+              personId: passenger?.personId
+            }
+          })
         }),
       })
 
@@ -233,10 +283,10 @@ export function AddFlightDialog({
           </div>
 
           {/* Flight Details */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Class
+                Fare Class
               </label>
               <select
                 value={formData.class}
@@ -248,6 +298,21 @@ export function AddFlightDialog({
                 <option value="BUSINESS">Business</option>
                 <option value="FIRST">First Class</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Fare Price
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                placeholder="e.g., 1500.00"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
             </div>
 
             <div>
@@ -321,6 +386,52 @@ export function AddFlightDialog({
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
+          </div>
+
+          {/* Passengers Section */}
+          <div className="border-t pt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Users className="w-5 h-5 text-blue-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Passengers</h3>
+              <span className="text-sm text-gray-500">
+                ({selectedPassengers.length} selected)
+              </span>
+            </div>
+
+            {loadingPassengers ? (
+              <div className="text-center py-8">
+                <div className="inline-block w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <p className="text-sm text-gray-500 mt-2">Loading passengers...</p>
+              </div>
+            ) : passengers.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {passengers.map((passenger) => (
+                  <label
+                    key={passenger.id}
+                    className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedPassengers.includes(passenger.id)}
+                      onChange={() => togglePassenger(passenger.id)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">
+                        {passenger.personName || `${passenger.personType} #${passenger.personId}`}
+                      </div>
+                      <div className="text-xs text-gray-500">{passenger.personType}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-500">No passengers added to this travel request yet</p>
+                <p className="text-sm text-gray-400 mt-1">Add passengers to the travel request first</p>
+              </div>
+            )}
           </div>
 
           {/* Notes */}

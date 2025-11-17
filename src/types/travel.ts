@@ -106,6 +106,7 @@ export interface TripFlight {
   arrivalDate: Date | null
   arrivalTime: string | null
   class: string | null
+  price: number | null
   bookingReference: string | null
   terminal: string | null
   gate: string | null

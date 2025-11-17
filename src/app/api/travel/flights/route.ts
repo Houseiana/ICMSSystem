@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
         arrivalDate: body.arrivalDate ? new Date(body.arrivalDate) : null,
         arrivalTime: body.arrivalTime,
         class: body.class,
+        price: body.price,
         bookingReference: body.bookingReference,
         terminal: body.terminal,
         gate: body.gate,

@@ -1090,9 +1090,32 @@ export default function TravelRequestDetailPage({
                           </div>
                         </div>
                         {hotel.rooms && hotel.rooms.length > 0 && (
-                          <p className="text-xs text-gray-500 mt-3 pt-3 border-t">
-                            {hotel.rooms.length} room(s)
-                          </p>
+                          <div className="mt-3 pt-3 border-t">
+                            <p className="text-xs font-medium text-gray-700 mb-2">
+                              {hotel.rooms.length} Room{hotel.rooms.length > 1 ? 's' : ''}
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {hotel.rooms.map((room, idx) => (
+                                <div key={room.id} className="text-xs bg-blue-50 p-2 rounded">
+                                  <div className="font-medium text-gray-900">
+                                    {room.unitCategory}
+                                    {room.roomNumber && ` #${room.roomNumber}`}
+                                  </div>
+                                  <div className="text-gray-600 mt-1 space-y-0.5">
+                                    {room.guestNumbers && (
+                                      <div>👥 {room.guestNumbers} guest{room.guestNumbers > 1 ? 's' : ''}</div>
+                                    )}
+                                    {room.bedType && (
+                                      <div>🛏️ {room.bedType}</div>
+                                    )}
+                                    {room.bathrooms && (
+                                      <div>🚿 {room.bathrooms} bathroom{room.bathrooms > 1 ? 's' : ''}</div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         )}
                       </div>
                     ))}
