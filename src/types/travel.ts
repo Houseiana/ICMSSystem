@@ -141,6 +141,10 @@ export interface TripFlightPassenger {
   seatNumber: string | null
   mealPreference: string | null
   specialAssistance: string | null
+  ticketClass: string | null
+  ticketPrice: number | null
+  baggageAllowance: string | null
+  bookingReference: string | null
   createdAt: Date
 }
 

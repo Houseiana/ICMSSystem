@@ -105,7 +105,11 @@ export async function POST(request: NextRequest) {
               personId: p.personId,
               seatNumber: p.seatNumber,
               mealPreference: p.mealPreference,
-              specialAssistance: p.specialAssistance
+              specialAssistance: p.specialAssistance,
+              ticketClass: p.ticketClass,
+              ticketPrice: p.ticketPrice,
+              baggageAllowance: p.baggageAllowance,
+              bookingReference: p.bookingReference
             }))
           }
         })

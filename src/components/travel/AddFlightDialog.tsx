@@ -22,6 +22,10 @@ interface PassengerDetails {
   seatNumber: string
   mealPreference: string
   specialAssistance: string
+  ticketClass: string
+  ticketPrice: string
+  baggageAllowance: string
+  bookingReference: string
 }
 
 interface AddFlightDialogProps {
@@ -94,7 +98,11 @@ export function AddFlightDialog({
               passengerId: p.id,
               seatNumber: '',
               mealPreference: '',
-              specialAssistance: ''
+              specialAssistance: '',
+              ticketClass: 'ECONOMY',
+              ticketPrice: '',
+              baggageAllowance: '',
+              bookingReference: ''
             }
           })
           setPassengerDetails(initialDetails)
@@ -166,7 +174,11 @@ export function AddFlightDialog({
               personId: passenger?.personId,
               seatNumber: details?.seatNumber || null,
               mealPreference: details?.mealPreference || null,
-              specialAssistance: details?.specialAssistance || null
+              specialAssistance: details?.specialAssistance || null,
+              ticketClass: details?.ticketClass || null,
+              ticketPrice: details?.ticketPrice ? parseFloat(details.ticketPrice) : null,
+              baggageAllowance: details?.baggageAllowance || null,
+              bookingReference: details?.bookingReference || null
             }
           })
         }),
@@ -670,31 +682,97 @@ export function AddFlightDialog({
                           <div className="text-xs text-gray-500 mb-3">{passenger.personType}</div>
 
                           {isSelected && (
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3 pt-3 border-t">
-                              <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">
-                                  Seat Number
-                                </label>
-                                <input
-                                  type="text"
-                                  value={details?.seatNumber || ''}
-                                  onChange={(e) => updatePassengerDetail(passenger.id, 'seatNumber', e.target.value)}
-                                  placeholder="e.g., 12A"
-                                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                />
+                            <div className="space-y-3 mt-3 pt-3 border-t">
+                              {/* Row 1: Ticket Class and Ticket Price */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Ticket Class
+                                  </label>
+                                  <select
+                                    value={details?.ticketClass || 'ECONOMY'}
+                                    onChange={(e) => updatePassengerDetail(passenger.id, 'ticketClass', e.target.value)}
+                                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  >
+                                    <option value="ECONOMY">Economy</option>
+                                    <option value="PREMIUM_ECONOMY">Premium Economy</option>
+                                    <option value="BUSINESS">Business</option>
+                                    <option value="FIRST">First Class</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Ticket Price
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={details?.ticketPrice || ''}
+                                    onChange={(e) => updatePassengerDetail(passenger.id, 'ticketPrice', e.target.value)}
+                                    placeholder="e.g., 1500.00"
+                                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  />
+                                </div>
                               </div>
-                              <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">
-                                  Meal Preference
-                                </label>
-                                <input
-                                  type="text"
-                                  value={details?.mealPreference || ''}
-                                  onChange={(e) => updatePassengerDetail(passenger.id, 'mealPreference', e.target.value)}
-                                  placeholder="e.g., Vegetarian"
-                                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                />
+
+                              {/* Row 2: Seat Number and Booking Reference */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Seat Number
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={details?.seatNumber || ''}
+                                    onChange={(e) => updatePassengerDetail(passenger.id, 'seatNumber', e.target.value)}
+                                    placeholder="e.g., 12A"
+                                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Booking Reference
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={details?.bookingReference || ''}
+                                    onChange={(e) => updatePassengerDetail(passenger.id, 'bookingReference', e.target.value)}
+                                    placeholder="e.g., ABC123"
+                                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  />
+                                </div>
                               </div>
+
+                              {/* Row 3: Baggage Allowance and Meal Preference */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Baggage Allowance
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={details?.baggageAllowance || ''}
+                                    onChange={(e) => updatePassengerDetail(passenger.id, 'baggageAllowance', e.target.value)}
+                                    placeholder="e.g., 2 x 23kg"
+                                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Meal Preference
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={details?.mealPreference || ''}
+                                    onChange={(e) => updatePassengerDetail(passenger.id, 'mealPreference', e.target.value)}
+                                    placeholder="e.g., Vegetarian"
+                                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Row 4: Special Assistance */}
                               <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-1">
                                   Special Assistance
@@ -703,7 +781,7 @@ export function AddFlightDialog({
                                   type="text"
                                   value={details?.specialAssistance || ''}
                                   onChange={(e) => updatePassengerDetail(passenger.id, 'specialAssistance', e.target.value)}
-                                  placeholder="e.g., Wheelchair"
+                                  placeholder="e.g., Wheelchair, Child seat, etc."
                                   className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 />
                               </div>

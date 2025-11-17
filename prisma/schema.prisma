@@ -1514,6 +1514,10 @@ model TripFlightPassenger {
   seatNumber        String?
   mealPreference    String?
   specialAssistance String?
+  ticketClass       String?
+  ticketPrice       Float?
+  baggageAllowance  String?
+  bookingReference  String?
   createdAt         DateTime  @default(now())
 
   flight            TripFlight @relation(fields: [tripFlightId], references: [id], onDelete: Cascade)
