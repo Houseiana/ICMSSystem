@@ -133,59 +133,75 @@ export function HotelDetailsDialog({
                 {hotel.rooms.map((room, index) => (
                   <div
                     key={room.id}
-                    className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                    className="border border-gray-200 rounded-lg p-5 bg-white shadow-sm"
                   >
-                    <h4 className="font-medium text-gray-900 mb-3">
-                      Room {index + 1}
-                      {room.roomNumber && ` - #${room.roomNumber}`}
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="flex items-center justify-between mb-4 pb-3 border-b">
+                      <h4 className="text-lg font-semibold text-gray-900">
+                        {room.unitCategory} {index + 1}
+                      </h4>
+                      {room.roomNumber && (
+                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                          Room #{room.roomNumber}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div>
-                        <span className="text-gray-500">Unit Category:</span>
-                        <span className="ml-2 text-gray-900">{room.unitCategory}</span>
+                        <p className="text-xs font-medium text-gray-500 mb-1">Unit Category</p>
+                        <p className="text-sm text-gray-900">{room.unitCategory}</p>
                       </div>
-                      {room.bathrooms && (
-                        <div>
-                          <span className="text-gray-500">Bathrooms:</span>
-                          <span className="ml-2 text-gray-900">{room.bathrooms}</span>
-                        </div>
-                      )}
-                      {room.guestNumbers && (
-                        <div>
-                          <span className="text-gray-500">Guests:</span>
-                          <span className="ml-2 text-gray-900">{room.guestNumbers}</span>
-                        </div>
-                      )}
+
                       {room.bedType && (
                         <div>
-                          <span className="text-gray-500">Bed Type:</span>
-                          <span className="ml-2 text-gray-900">{room.bedType}</span>
+                          <p className="text-xs font-medium text-gray-500 mb-1">Bed Type</p>
+                          <p className="text-sm text-gray-900">{room.bedType}</p>
                         </div>
                       )}
-                      <div>
-                        <span className="text-gray-500">Pantry:</span>
-                        <span className="ml-2 text-gray-900">
-                          {room.hasPantry ? 'Yes' : 'No'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Breakfast:</span>
-                        <span className="ml-2 text-gray-900">
-                          {room.includesBreakfast ? 'Included' : 'Not Included'}
-                        </span>
-                      </div>
-                      {room.pricePerNight && (
+
+                      {room.bathrooms !== null && (
                         <div>
-                          <span className="text-gray-500">Price/Night:</span>
-                          <span className="ml-2 text-gray-900">
-                            ${room.pricePerNight.toFixed(2)}
-                          </span>
+                          <p className="text-xs font-medium text-gray-500 mb-1">Bathrooms</p>
+                          <p className="text-sm text-gray-900">{room.bathrooms}</p>
                         </div>
                       )}
+
+                      {room.guestNumbers !== null && (
+                        <div>
+                          <p className="text-xs font-medium text-gray-500 mb-1">Guest Capacity</p>
+                          <p className="text-sm text-gray-900">{room.guestNumbers} {room.guestNumbers === 1 ? 'guest' : 'guests'}</p>
+                        </div>
+                      )}
+
+                      <div>
+                        <p className="text-xs font-medium text-gray-500 mb-1">Pantry</p>
+                        <p className="text-sm text-gray-900">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${room.hasPantry ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                            {room.hasPantry ? '✓ Yes' : '✗ No'}
+                          </span>
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs font-medium text-gray-500 mb-1">Breakfast Included</p>
+                        <p className="text-sm text-gray-900">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${room.includesBreakfast ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                            {room.includesBreakfast ? '✓ Included' : '✗ Not Included'}
+                          </span>
+                        </p>
+                      </div>
+
+                      {room.pricePerNight !== null && (
+                        <div>
+                          <p className="text-xs font-medium text-gray-500 mb-1">Price Per Night</p>
+                          <p className="text-sm font-semibold text-gray-900">${room.pricePerNight.toFixed(2)}</p>
+                        </div>
+                      )}
+
                       {room.connectedToRoom && (
-                        <div className="md:col-span-3">
-                          <span className="text-gray-500">Connected to:</span>
-                          <span className="ml-2 text-gray-900">{room.connectedToRoom}</span>
+                        <div className="lg:col-span-3">
+                          <p className="text-xs font-medium text-gray-500 mb-1">Connected To</p>
+                          <p className="text-sm text-gray-900">{room.connectedToRoom}</p>
                         </div>
                       )}
                     </div>
