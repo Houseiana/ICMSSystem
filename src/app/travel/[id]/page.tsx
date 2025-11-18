@@ -1067,6 +1067,12 @@ export default function TravelRequestDetailPage({
                                 {new Date(hotel.checkOutDate).toLocaleDateString()}
                               </p>
                             )}
+                            {hotel.rooms && hotel.rooms.length > 0 && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                {hotel.rooms.length} {hotel.rooms.length === 1 ? 'Room' : 'Rooms'}
+                                {hotel.rooms[0].unitCategory && ` • ${hotel.rooms.map((r: any) => r.unitCategory).join(', ')}`}
+                              </p>
+                            )}
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">

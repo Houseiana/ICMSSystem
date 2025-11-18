@@ -329,6 +329,33 @@ function renderItem(item: any) {
                 <span>Conf: {data.confirmationNumber}</span>
               )}
             </div>
+            {item.isCheckIn && data.rooms && data.rooms.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                <p className="text-sm font-medium text-gray-700 mb-2">
+                  Rooms ({data.rooms.length}):
+                </p>
+                <div className="space-y-2">
+                  {data.rooms.map((room: any, idx: number) => (
+                    <div key={idx} className="text-sm text-gray-600 bg-white p-2 rounded border border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">
+                          {room.unitCategory} {room.roomNumber ? `#${room.roomNumber}` : `${idx + 1}`}
+                        </span>
+                        {room.bedType && (
+                          <span className="text-xs text-gray-500">{room.bedType}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                        {room.guestNumbers && <span>• {room.guestNumbers} {room.guestNumbers === 1 ? 'guest' : 'guests'}</span>}
+                        {room.bathrooms && <span>• {room.bathrooms} {room.bathrooms === 1 ? 'bathroom' : 'bathrooms'}</span>}
+                        {room.hasPantry && <span>• Pantry</span>}
+                        {room.includesBreakfast && <span>• Breakfast included</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )
