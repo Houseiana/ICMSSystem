@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { X, Plus } from 'lucide-react'
+import { getPrivateJetAirports } from '@/data/private-jet-airports'
 
 interface AddPrivateJetDialogProps {
   travelRequestId: number
@@ -20,24 +21,13 @@ const AIRCRAFT_TYPES = [
   'Other',
 ]
 
-const AMENITIES = [
-  'WiFi',
-  'Satellite Phone',
-  'Bedroom',
-  'Shower',
-  'Full Kitchen',
-  'Entertainment System',
-  'Conference Room',
-  'Flight Attendant',
-]
-
 export function AddPrivateJetDialog({
   travelRequestId,
   onClose,
   onSuccess,
 }: AddPrivateJetDialogProps) {
   const [loading, setLoading] = useState(false)
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
+  const airports = getPrivateJetAirports()
   const [formData, setFormData] = useState({
     aircraftType: '',
     operator: '',
@@ -55,14 +45,6 @@ export function AddPrivateJetDialog({
     notes: '',
   })
 
-  const toggleAmenity = (amenity: string) => {
-    setSelectedAmenities((prev) =>
-      prev.includes(amenity)
-        ? prev.filter((a) => a !== amenity)
-        : [...prev, amenity]
-    )
-  }
-
   const handleSubmit = async () => {
     if (!formData.aircraftType || !formData.departureAirport || !formData.arrivalAirport) {
       alert('Please fill in all required fields')
@@ -78,7 +60,6 @@ export function AddPrivateJetDialog({
           travelRequestId,
           ...formData,
           passengerCapacity: formData.passengerCapacity ? parseInt(formData.passengerCapacity) : null,
-          amenities: selectedAmenities.join(', '),
           departureDate: formData.departureDate ? new Date(formData.departureDate) : null,
           arrivalDate: formData.arrivalDate ? new Date(formData.arrivalDate) : null,
         }),
@@ -204,26 +185,36 @@ export function AddPrivateJetDialog({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Departure Airport <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.departureAirport}
                 onChange={(e) => setFormData({ ...formData, departureAirport: e.target.value })}
-                placeholder="e.g., Teterboro Airport (TEB)"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              />
+              >
+                <option value="">Select Departure Airport</option>
+                {airports.map((airport) => (
+                  <option key={airport.code} value={airport.label}>
+                    {airport.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Arrival Airport <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.arrivalAirport}
                 onChange={(e) => setFormData({ ...formData, arrivalAirport: e.target.value })}
-                placeholder="e.g., Le Bourget Airport (LBG)"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              />
+              >
+                <option value="">Select Arrival Airport</option>
+                {airports.map((airport) => (
+                  <option key={airport.code} value={airport.label}>
+                    {airport.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -292,33 +283,6 @@ export function AddPrivateJetDialog({
                 onChange={(e) => setFormData({ ...formData, arrivalTime: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               />
-            </div>
-          </div>
-
-          {/* Amenities */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Amenities
-            </label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {AMENITIES.map((amenity) => (
-                <label
-                  key={amenity}
-                  className={`flex items-center gap-2 p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                    selectedAmenities.includes(amenity)
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedAmenities.includes(amenity)}
-                    onChange={() => toggleAmenity(amenity)}
-                    className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
-                  />
-                  <span className="text-sm font-medium text-gray-900">{amenity}</span>
-                </label>
-              ))}
             </div>
           </div>
 
