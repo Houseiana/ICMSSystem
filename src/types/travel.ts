@@ -62,11 +62,22 @@ export interface TravelRequest {
   id: number
   requestNumber: string
   createdById: number | null
+  tripOwnerType: PersonType | null
+  tripOwnerId: number | null
   status: TravelRequestStatus
   requestDate: Date
   tripStartDate: Date | null
   tripEndDate: Date | null
   notes: string | null
+  // Travel Requirements
+  needsFlight: boolean
+  needsPrivateJet: boolean
+  needsHotel: boolean
+  needsEmbassyService: boolean
+  needsTrain: boolean
+  needsRentalCar: boolean
+  needsCarWithDriver: boolean
+  needsEvents: boolean
   createdAt: Date
   updatedAt: Date
   destinations?: TripDestination[]

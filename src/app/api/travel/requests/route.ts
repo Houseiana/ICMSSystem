@@ -99,9 +99,19 @@ export async function POST(request: NextRequest) {
       data: {
         requestNumber,
         createdById: body.createdById,
+        tripOwnerType: body.tripOwnerType || null,
+        tripOwnerId: body.tripOwnerId || null,
         tripStartDate: body.tripStartDate ? new Date(body.tripStartDate) : null,
         tripEndDate: body.tripEndDate ? new Date(body.tripEndDate) : null,
         notes: body.notes,
+        needsFlight: body.needsFlight || false,
+        needsPrivateJet: body.needsPrivateJet || false,
+        needsHotel: body.needsHotel || false,
+        needsEmbassyService: body.needsEmbassyService || false,
+        needsTrain: body.needsTrain || false,
+        needsRentalCar: body.needsRentalCar || false,
+        needsCarWithDriver: body.needsCarWithDriver || false,
+        needsEvents: body.needsEvents || false,
         status: 'REQUEST'
       }
     })

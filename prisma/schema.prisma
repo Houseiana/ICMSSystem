@@ -1428,11 +1428,27 @@ model TravelRequest {
   id              Int       @id @default(autoincrement())
   requestNumber   String    @unique
   createdById     Int?
+
+  // Trip Owner Information
+  tripOwnerType   String?   // EMPLOYEE, STAKEHOLDER, EMPLOYER, TASK_HELPER
+  tripOwnerId     Int?      // ID from respective person table
+
   status          String    @default("REQUEST") // REQUEST, PLANNING, CONFIRMING, EXECUTING, COMPLETED, CANCELLED
   requestDate     DateTime  @default(now())
   tripStartDate   DateTime?
   tripEndDate     DateTime?
   notes           String?
+
+  // Travel Requirements (icon-based selectors)
+  needsFlight     Boolean   @default(false)
+  needsPrivateJet Boolean   @default(false)
+  needsHotel      Boolean   @default(false)
+  needsEmbassyService Boolean @default(false)
+  needsTrain      Boolean   @default(false)
+  needsRentalCar  Boolean   @default(false)
+  needsCarWithDriver Boolean @default(false)
+  needsEvents     Boolean   @default(false)
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
