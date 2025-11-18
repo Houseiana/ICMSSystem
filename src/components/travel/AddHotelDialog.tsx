@@ -5,6 +5,11 @@ import { X, Plus, Hotel, Trash2, DoorOpen } from 'lucide-react'
 import { CountryCitySelector } from '@/components/common/CountryCitySelector'
 // HotelStatus type removed - using string instead
 
+interface GuestAssignment {
+  passengerId: number
+  passengerName: string
+}
+
 interface RoomFormData {
   unitCategory: string
   roomNumber: string
@@ -15,16 +20,19 @@ interface RoomFormData {
   connectedToRoom: string
   pricePerNight: number | null
   includesBreakfast: boolean
+  guests: GuestAssignment[]
 }
 
 interface AddHotelDialogProps {
   travelRequestId: number
+  passengers?: any[]
   onClose: () => void
   onSuccess: () => void
 }
 
 export function AddHotelDialog({
   travelRequestId,
+  passengers = [],
   onClose,
   onSuccess,
 }: AddHotelDialogProps) {
@@ -50,7 +58,7 @@ export function AddHotelDialog({
   }, [rooms])
 
   const addRoom = () => {
-    const newRoom = {
+    const newRoom: RoomFormData = {
       unitCategory: 'Room',
       roomNumber: '',
       bathrooms: null,
@@ -60,9 +68,22 @@ export function AddHotelDialog({
       connectedToRoom: '',
       pricePerNight: null,
       includesBreakfast: false,
+      guests: [],
     }
     const updatedRooms = [...rooms, newRoom]
     console.log('Adding room. New rooms array:', updatedRooms)
+    setRooms(updatedRooms)
+  }
+
+  const addGuestToRoom = (roomIndex: number, passengerId: number, passengerName: string) => {
+    const updatedRooms = [...rooms]
+    updatedRooms[roomIndex].guests.push({ passengerId, passengerName })
+    setRooms(updatedRooms)
+  }
+
+  const removeGuestFromRoom = (roomIndex: number, guestIndex: number) => {
+    const updatedRooms = [...rooms]
+    updatedRooms[roomIndex].guests = updatedRooms[roomIndex].guests.filter((_, idx) => idx !== guestIndex)
     setRooms(updatedRooms)
   }
 
@@ -89,7 +110,21 @@ export function AddHotelDialog({
         ...formData,
         checkInDate: formData.checkInDate ? new Date(formData.checkInDate) : null,
         checkOutDate: formData.checkOutDate ? new Date(formData.checkOutDate) : null,
-        rooms: rooms.length > 0 ? rooms : undefined,
+        rooms: rooms.length > 0 ? rooms.map(room => ({
+          unitCategory: room.unitCategory,
+          roomNumber: room.roomNumber,
+          bathrooms: room.bathrooms,
+          hasPantry: room.hasPantry,
+          guestNumbers: room.guestNumbers,
+          bedType: room.bedType,
+          connectedToRoom: room.connectedToRoom,
+          pricePerNight: room.pricePerNight,
+          includesBreakfast: room.includesBreakfast,
+          assignments: room.guests.map(guest => ({
+            personType: 'PASSENGER',
+            personId: guest.passengerId
+          }))
+        })) : undefined,
       }
 
       console.log('Submitting hotel with rooms:', {
@@ -428,34 +463,6 @@ export function AddHotelDialog({
                         />
                       </div>
 
-                      {/* Has Pantry */}
-                      <div className="flex items-center gap-2 pt-8">
-                        <input
-                          type="checkbox"
-                          id={`pantry-${index}`}
-                          checked={room.hasPantry}
-                          onChange={(e) => updateRoom(index, 'hasPantry', e.target.checked)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                        <label htmlFor={`pantry-${index}`} className="text-sm font-medium text-gray-700">
-                          Has Pantry
-                        </label>
-                      </div>
-
-                      {/* Includes Breakfast */}
-                      <div className="flex items-center gap-2 pt-8">
-                        <input
-                          type="checkbox"
-                          id={`breakfast-${index}`}
-                          checked={room.includesBreakfast}
-                          onChange={(e) => updateRoom(index, 'includesBreakfast', e.target.checked)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                        <label htmlFor={`breakfast-${index}`} className="text-sm font-medium text-gray-700">
-                          Includes Breakfast
-                        </label>
-                      </div>
-
                       {/* Connected to Another Room */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -469,6 +476,60 @@ export function AddHotelDialog({
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
+                    </div>
+
+                    {/* Guest Assignments */}
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="flex items-center justify-between mb-3">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Assigned Guests
+                        </label>
+                        {passengers.length > 0 && (
+                          <select
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                const passenger = passengers.find(p => p.id === parseInt(e.target.value))
+                                if (passenger) {
+                                  addGuestToRoom(index, passenger.id, passenger.personDetails?.fullName || 'Unknown')
+                                  e.target.value = ''
+                                }
+                              }
+                            }}
+                            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="">+ Add Guest</option>
+                            {passengers
+                              .filter(p => !room.guests.some(g => g.passengerId === p.id))
+                              .map(passenger => (
+                                <option key={passenger.id} value={passenger.id}>
+                                  {passenger.personDetails?.fullName || 'Unknown'}
+                                </option>
+                              ))}
+                          </select>
+                        )}
+                      </div>
+
+                      {room.guests.length === 0 ? (
+                        <p className="text-sm text-gray-500 italic">No guests assigned yet</p>
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {room.guests.map((guest, guestIdx) => (
+                            <span
+                              key={guestIdx}
+                              className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm"
+                            >
+                              <span>{guest.passengerName}</span>
+                              <button
+                                type="button"
+                                onClick={() => removeGuestFromRoom(index, guestIdx)}
+                                className="hover:text-blue-900"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

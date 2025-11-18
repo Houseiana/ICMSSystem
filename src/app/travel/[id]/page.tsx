@@ -1263,6 +1263,7 @@ export default function TravelRequestDetailPage({
       {showAddHotelDialog && (
         <AddHotelDialog
           travelRequestId={request.id}
+          passengers={request.passengers || []}
           onClose={() => setShowAddHotelDialog(false)}
           onSuccess={() => {
             refetch()
@@ -1275,6 +1276,7 @@ export default function TravelRequestDetailPage({
       {showHotelDetailsDialog && selectedHotel && (
         <HotelDetailsDialog
           hotel={selectedHotel}
+          passengers={request.passengers || []}
           onClose={() => {
             setShowHotelDetailsDialog(false)
             setSelectedHotel(null)

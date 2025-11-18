@@ -341,15 +341,14 @@ function renderItem(item: any) {
                         <span className="font-medium">
                           {room.unitCategory} {room.roomNumber ? `#${room.roomNumber}` : `${idx + 1}`}
                         </span>
-                        {room.bedType && (
-                          <span className="text-xs text-gray-500">{room.bedType}</span>
+                        {room.pricePerNight && (
+                          <span className="text-xs font-semibold text-blue-600">${room.pricePerNight}/night</span>
                         )}
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                        {room.bedType && <span>• {room.bedType}</span>}
                         {room.guestNumbers && <span>• {room.guestNumbers} {room.guestNumbers === 1 ? 'guest' : 'guests'}</span>}
                         {room.bathrooms && <span>• {room.bathrooms} {room.bathrooms === 1 ? 'bathroom' : 'bathrooms'}</span>}
-                        {room.hasPantry && <span>• Pantry</span>}
-                        {room.includesBreakfast && <span>• Breakfast included</span>}
                       </div>
                     </div>
                   ))}

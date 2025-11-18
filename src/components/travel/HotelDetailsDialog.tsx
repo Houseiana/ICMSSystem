@@ -5,6 +5,7 @@ import { TripHotel } from '@/types/travel'
 
 interface HotelDetailsDialogProps {
   hotel: TripHotel
+  passengers?: any[]
   onClose: () => void
   onEdit: () => void
   onDelete: () => void
@@ -12,10 +13,16 @@ interface HotelDetailsDialogProps {
 
 export function HotelDetailsDialog({
   hotel,
+  passengers = [],
   onClose,
   onEdit,
   onDelete,
 }: HotelDetailsDialogProps) {
+
+  const getPassengerName = (passengerId: number) => {
+    const passenger = passengers.find(p => p.id === passengerId)
+    return passenger?.personDetails?.fullName || `Guest ${passengerId}`
+  }
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -147,9 +154,16 @@ export function HotelDetailsDialog({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div>
-                        <p className="text-xs font-medium text-gray-500 mb-1">Unit Category</p>
+                        <p className="text-xs font-medium text-gray-500 mb-1">Room Category</p>
                         <p className="text-sm text-gray-900">{room.unitCategory}</p>
                       </div>
+
+                      {room.pricePerNight !== null && (
+                        <div>
+                          <p className="text-xs font-medium text-gray-500 mb-1">Price Per Night</p>
+                          <p className="text-sm font-semibold text-blue-600">${room.pricePerNight.toFixed(2)}</p>
+                        </div>
+                      )}
 
                       {room.bedType && (
                         <div>
@@ -172,38 +186,30 @@ export function HotelDetailsDialog({
                         </div>
                       )}
 
-                      <div>
-                        <p className="text-xs font-medium text-gray-500 mb-1">Pantry</p>
-                        <p className="text-sm text-gray-900">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${room.hasPantry ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                            {room.hasPantry ? '✓ Yes' : '✗ No'}
-                          </span>
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs font-medium text-gray-500 mb-1">Breakfast Included</p>
-                        <p className="text-sm text-gray-900">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${room.includesBreakfast ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                            {room.includesBreakfast ? '✓ Included' : '✗ Not Included'}
-                          </span>
-                        </p>
-                      </div>
-
-                      {room.pricePerNight !== null && (
-                        <div>
-                          <p className="text-xs font-medium text-gray-500 mb-1">Price Per Night</p>
-                          <p className="text-sm font-semibold text-gray-900">${room.pricePerNight.toFixed(2)}</p>
-                        </div>
-                      )}
-
                       {room.connectedToRoom && (
-                        <div className="lg:col-span-3">
+                        <div>
                           <p className="text-xs font-medium text-gray-500 mb-1">Connected To</p>
                           <p className="text-sm text-gray-900">{room.connectedToRoom}</p>
                         </div>
                       )}
                     </div>
+
+                    {/* Guest Assignments */}
+                    {room.assignments && room.assignments.length > 0 && (
+                      <div className="mt-4 pt-4 border-t">
+                        <p className="text-xs font-medium text-gray-500 mb-2">Assigned Guests</p>
+                        <div className="flex flex-wrap gap-2">
+                          {room.assignments.map((assignment: any, idx: number) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm"
+                            >
+                              {getPassengerName(assignment.personId)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
