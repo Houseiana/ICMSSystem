@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Calendar, Plus, Trash2, User, Plane, Building2, Hotel, Landmark, Train, Car, CarFront, Ticket } from 'lucide-react'
 import Link from 'next/link'
+import { CountryCitySelector } from '@/components/common/CountryCitySelector'
 
 interface PersonOption {
   id: number
@@ -131,6 +132,14 @@ export default function NewTravelRequestPage() {
     const newDestinations = [...formData.destinations]
     newDestinations[index][field] = value
     setFormData({ ...formData, destinations: newDestinations })
+  }
+
+  const updateDestinationCountry = (index: number, country: string) => {
+    updateDestination(index, 'country', country)
+  }
+
+  const updateDestinationCity = (index: number, city: string) => {
+    updateDestination(index, 'city', city)
   }
 
   const toggleRequirement = (key: string) => {
@@ -305,32 +314,29 @@ export default function NewTravelRequestPage() {
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               {formData.destinations.map((dest, index) => (
-                <div key={index} className="flex gap-3">
-                  <input
-                    type="text"
-                    placeholder="City"
-                    value={dest.city}
-                    onChange={(e) => updateDestination(index, 'city', e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium text-gray-700">Destination {index + 1}</h4>
+                    {formData.destinations.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeDestination(index)}
+                        className="text-red-600 hover:text-red-700 p-1 hover:bg-red-50 rounded transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <CountryCitySelector
+                    country={dest.country}
+                    city={dest.city}
+                    onCountryChange={(country) => updateDestinationCountry(index, country)}
+                    onCityChange={(city) => updateDestinationCity(index, city)}
+                    countryLabel="Country"
+                    cityLabel="City"
                   />
-                  <input
-                    type="text"
-                    placeholder="Country"
-                    value={dest.country}
-                    onChange={(e) => updateDestination(index, 'country', e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  {formData.destinations.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeDestination(index)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  )}
                 </div>
               ))}
             </div>

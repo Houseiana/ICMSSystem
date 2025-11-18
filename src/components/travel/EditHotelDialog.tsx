@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { X, Save, Hotel, DoorOpen, Plus, Trash2 } from 'lucide-react'
 import { TripHotel, TripHotelRoom } from '@/types/travel'
+import { CountryCitySelector } from '@/components/common/CountryCitySelector'
 
 interface RoomFormData {
   id?: number
@@ -208,33 +209,13 @@ export function EditHotelDialog({
           </div>
 
           {/* City & Country */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                City <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                placeholder="e.g., New York"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Country <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.country}
-                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                placeholder="e.g., United States"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
+          <CountryCitySelector
+            country={formData.country}
+            city={formData.city}
+            onCountryChange={(country) => setFormData({ ...formData, country })}
+            onCityChange={(city) => setFormData({ ...formData, city })}
+            required={true}
+          />
 
           {/* Contact Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
