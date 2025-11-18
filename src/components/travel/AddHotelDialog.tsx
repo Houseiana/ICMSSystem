@@ -80,21 +80,32 @@ export function AddHotelDialog({
 
     setLoading(true)
     try {
+      const payload = {
+        travelRequestId,
+        ...formData,
+        checkInDate: formData.checkInDate ? new Date(formData.checkInDate) : null,
+        checkOutDate: formData.checkOutDate ? new Date(formData.checkOutDate) : null,
+        rooms: rooms.length > 0 ? rooms : undefined,
+      }
+
+      console.log('Submitting hotel with rooms:', {
+        hotelName: payload.hotelName,
+        roomsCount: payload.rooms?.length || 0,
+        rooms: payload.rooms
+      })
+
       const response = await fetch('/api/travel/hotels', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          travelRequestId,
-          ...formData,
-          checkInDate: formData.checkInDate ? new Date(formData.checkInDate) : null,
-          checkOutDate: formData.checkOutDate ? new Date(formData.checkOutDate) : null,
-          rooms: rooms.length > 0 ? rooms : undefined,
-        }),
+        body: JSON.stringify(payload),
       })
 
       const result = await response.json()
 
+      console.log('API response:', result)
+
       if (result.success) {
+        alert(`Hotel added successfully with ${result.data?.rooms?.length || 0} room(s)!`)
         onSuccess()
         onClose()
       } else {

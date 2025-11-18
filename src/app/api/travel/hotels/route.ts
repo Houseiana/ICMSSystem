@@ -73,6 +73,13 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
+    console.log('Creating hotel with data:', {
+      hotelName: body.hotelName,
+      city: body.city,
+      country: body.country,
+      roomsCount: body.rooms?.length || 0
+    })
+
     const hotel = await prisma.tripHotel.create({
       data: {
         travelRequestId: body.travelRequestId,
@@ -121,14 +128,17 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    console.log('Hotel created successfully with rooms:', hotel.rooms?.length || 0)
+
     return NextResponse.json({
       success: true,
       data: hotel
     }, { status: 201 })
   } catch (error) {
     console.error('Error creating hotel:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create hotel'
     return NextResponse.json(
-      { success: false, error: 'Failed to create hotel' },
+      { success: false, error: errorMessage },
       { status: 500 }
     )
   }
