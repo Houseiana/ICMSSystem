@@ -28,7 +28,15 @@ export async function GET(
         destinations: true,
         flights: true,
         privateJets: true,
-        hotels: true,
+        hotels: {
+          include: {
+            rooms: {
+              include: {
+                assignments: true
+              }
+            }
+          }
+        },
         embassyServices: true,
         trains: true,
         rentalCarsSelfDrive: true,
