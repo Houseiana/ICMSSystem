@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Plus, Hotel, Trash2, DoorOpen } from 'lucide-react'
 import { CountryCitySelector } from '@/components/common/CountryCitySelector'
 // HotelStatus type removed - using string instead
@@ -45,21 +45,25 @@ export function AddHotelDialog({
 
   const [rooms, setRooms] = useState<RoomFormData[]>([])
 
+  useEffect(() => {
+    console.log('Rooms state changed:', rooms.length, rooms)
+  }, [rooms])
+
   const addRoom = () => {
-    setRooms([
-      ...rooms,
-      {
-        unitCategory: 'Room',
-        roomNumber: '',
-        bathrooms: null,
-        hasPantry: false,
-        guestNumbers: null,
-        bedType: '',
-        connectedToRoom: '',
-        pricePerNight: null,
-        includesBreakfast: false,
-      },
-    ])
+    const newRoom = {
+      unitCategory: 'Room',
+      roomNumber: '',
+      bathrooms: null,
+      hasPantry: false,
+      guestNumbers: null,
+      bedType: '',
+      connectedToRoom: '',
+      pricePerNight: null,
+      includesBreakfast: false,
+    }
+    const updatedRooms = [...rooms, newRoom]
+    console.log('Adding room. New rooms array:', updatedRooms)
+    setRooms(updatedRooms)
   }
 
   const removeRoom = (index: number) => {
