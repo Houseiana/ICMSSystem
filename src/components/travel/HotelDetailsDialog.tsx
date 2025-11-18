@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { X, Hotel, DoorOpen, Edit, Trash2, Plus } from 'lucide-react'
+import { X, Hotel, DoorOpen, Edit, Trash2 } from 'lucide-react'
 import { TripHotel } from '@/types/travel'
 
 interface HotelDetailsDialogProps {
@@ -9,7 +8,6 @@ interface HotelDetailsDialogProps {
   onClose: () => void
   onEdit: () => void
   onDelete: () => void
-  onRefresh?: () => void
 }
 
 export function HotelDetailsDialog({
@@ -17,48 +15,7 @@ export function HotelDetailsDialog({
   onClose,
   onEdit,
   onDelete,
-  onRefresh,
 }: HotelDetailsDialogProps) {
-  const [addingRoom, setAddingRoom] = useState(false)
-
-  const handleAddTestRoom = async () => {
-    setAddingRoom(true)
-    try {
-      const response = await fetch(`/api/travel/hotels/${hotel.id}/rooms`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          unitCategory: 'Room',
-          roomNumber: `${Math.floor(Math.random() * 900) + 100}`,
-          bathrooms: 1,
-          hasPantry: false,
-          guestNumbers: 2,
-          bedType: 'King bed',
-          connectedToRoom: '',
-          pricePerNight: 150,
-          includesBreakfast: true,
-        }),
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        alert('Test room added successfully!')
-        if (onRefresh) {
-          onRefresh()
-        }
-        onClose()
-      } else {
-        alert(`Failed to add room: ${result.error}`)
-      }
-    } catch (error) {
-      console.error('Error adding room:', error)
-      alert('Error adding room. Please try again.')
-    } finally {
-      setAddingRoom(false)
-    }
-  }
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -264,23 +221,6 @@ export function HotelDetailsDialog({
             Delete Hotel
           </button>
           <div className="flex gap-3">
-            <button
-              onClick={handleAddTestRoom}
-              disabled={addingRoom}
-              className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-            >
-              {addingRoom ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Adding...</span>
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  <span>Add Test Room</span>
-                </>
-              )}
-            </button>
             <button
               onClick={onClose}
               className="px-6 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-gray-700 transition-colors"

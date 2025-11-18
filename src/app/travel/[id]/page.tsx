@@ -1288,7 +1288,6 @@ export default function TravelRequestDetailPage({
             handleDeleteHotel(selectedHotel.id, selectedHotel.hotelName)
             setSelectedHotel(null)
           }}
-          onRefresh={refetch}
         />
       )}
 
