@@ -323,19 +323,19 @@ export default function TravelRequestDetailPage({
         {/* Tabs */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Tab Navigation */}
-          <div className="border-b border-gray-200">
-            <nav className="flex">
+          <div className="border-b border-gray-200 overflow-x-auto">
+            <nav className="flex min-w-max">
               {tabs.map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key as any)}
-                  className={`flex-1 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  className={`flex-shrink-0 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === tab.key
                       ? 'border-blue-600 text-blue-600 bg-blue-50'
                       : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   }`}
                 >
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center justify-center gap-2 whitespace-nowrap">
                     <tab.icon className="w-4 h-4" />
                     <span>{tab.label}</span>
                     {tab.count > 0 && (
