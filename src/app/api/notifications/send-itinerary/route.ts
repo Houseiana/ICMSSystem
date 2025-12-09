@@ -26,7 +26,8 @@ export async function POST(request: NextRequest) {
             rooms: true
           }
         },
-        rentalCars: true
+        rentalCarsSelfDrive: true,
+        destinations: true
       }
     })
 
@@ -41,10 +42,10 @@ export async function POST(request: NextRequest) {
 
     // Prepare common data
     const mainPassenger = travelRequest.passengers[0]
-    const recipientName = mainPassenger?.fullName || travelRequest.requestedBy || 'Traveler'
-    const destination = travelRequest.destination || 'Destination'
-    const travelDate = travelRequest.startDate
-      ? new Date(travelRequest.startDate).toLocaleDateString('en-US', {
+    const recipientName = mainPassenger?.fullName || 'Traveler'
+    const destination = travelRequest.destinations[0]?.city || travelRequest.destinations[0]?.country || 'Destination'
+    const travelDate = travelRequest.tripStartDate
+      ? new Date(travelRequest.tripStartDate).toLocaleDateString('en-US', {
           weekday: 'long',
           year: 'numeric',
           month: 'long',
@@ -54,10 +55,10 @@ export async function POST(request: NextRequest) {
 
     // Format flights data
     const flights = travelRequest.flights.map(flight => ({
-      airline: flight.airline,
-      flightNumber: flight.flightNumber,
-      departureCity: flight.departureCity,
-      arrivalCity: flight.arrivalCity,
+      airline: flight.airline || 'Unknown',
+      flightNumber: flight.flightNumber || '',
+      departureCity: flight.departureAirport || '',
+      arrivalCity: flight.arrivalAirport || '',
       departureDate: flight.departureDate
         ? new Date(flight.departureDate).toLocaleDateString()
         : '',
@@ -67,24 +68,24 @@ export async function POST(request: NextRequest) {
     // Format hotels data
     const hotels = travelRequest.hotels.map(hotel => ({
       hotelName: hotel.hotelName,
-      city: hotel.city,
-      checkIn: hotel.checkIn
-        ? new Date(hotel.checkIn).toLocaleDateString()
+      city: hotel.city || '',
+      checkIn: hotel.checkInDate
+        ? new Date(hotel.checkInDate).toLocaleDateString()
         : '',
-      checkOut: hotel.checkOut
-        ? new Date(hotel.checkOut).toLocaleDateString()
+      checkOut: hotel.checkOutDate
+        ? new Date(hotel.checkOutDate).toLocaleDateString()
         : ''
     }))
 
     // Format cars data
-    const cars = travelRequest.rentalCars.map(car => ({
-      carType: car.carType,
-      pickupLocation: car.pickupLocation,
+    const cars = travelRequest.rentalCarsSelfDrive.map(car => ({
+      carType: car.carType || 'Rental Car',
+      pickupLocation: car.pickupLocation || '',
       pickupDate: car.pickupDate
         ? new Date(car.pickupDate).toLocaleDateString()
         : '',
-      dropoffDate: car.dropoffDate
-        ? new Date(car.dropoffDate).toLocaleDateString()
+      dropoffDate: car.returnDate
+        ? new Date(car.returnDate).toLocaleDateString()
         : ''
     }))
 
