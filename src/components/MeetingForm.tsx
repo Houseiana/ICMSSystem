@@ -16,7 +16,26 @@ interface Meeting {
   purpose?: string
   category: string
   organizer?: string
-  participants?: string[]
+  participants?: string | string[]
+  status: string
+  notes?: string
+  outcome?: string
+}
+
+interface MeetingFormData {
+  id?: number
+  title: string
+  description?: string
+  date: string
+  startTime: string
+  endTime?: string
+  location?: string
+  locationType: string
+  meetingLink?: string
+  purpose?: string
+  category: string
+  organizer?: string
+  participants: string[]
   status: string
   notes?: string
   outcome?: string
@@ -37,7 +56,7 @@ export default function MeetingForm({
   meeting,
   selectedDate
 }: MeetingFormProps) {
-  const [formData, setFormData] = useState<Meeting>({
+  const [formData, setFormData] = useState<MeetingFormData>({
     title: '',
     description: '',
     date: selectedDate.toISOString().split('T')[0],
@@ -61,14 +80,37 @@ export default function MeetingForm({
 
   useEffect(() => {
     if (meeting) {
+      // Parse participants - could be string (JSON) or array
+      let parsedParticipants: string[] = []
+      if (meeting.participants) {
+        if (typeof meeting.participants === 'string') {
+          try {
+            parsedParticipants = JSON.parse(meeting.participants)
+          } catch {
+            parsedParticipants = []
+          }
+        } else {
+          parsedParticipants = meeting.participants
+        }
+      }
+
       setFormData({
-        ...meeting,
+        id: meeting.id,
+        title: meeting.title,
+        description: meeting.description,
         date: new Date(meeting.date).toISOString().split('T')[0],
-        participants: meeting.participants
-          ? (typeof meeting.participants === 'string'
-              ? JSON.parse(meeting.participants)
-              : meeting.participants)
-          : []
+        startTime: meeting.startTime,
+        endTime: meeting.endTime,
+        location: meeting.location,
+        locationType: meeting.locationType,
+        meetingLink: meeting.meetingLink,
+        purpose: meeting.purpose,
+        category: meeting.category,
+        organizer: meeting.organizer,
+        participants: parsedParticipants,
+        status: meeting.status,
+        notes: meeting.notes,
+        outcome: meeting.outcome
       })
     } else {
       setFormData(prev => ({
