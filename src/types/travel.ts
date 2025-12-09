@@ -78,6 +78,7 @@ export interface TravelRequest {
   needsRentalCar: boolean
   needsCarWithDriver: boolean
   needsEvents: boolean
+  needsMeetAssist: boolean
   createdAt: Date
   updatedAt: Date
   destinations?: TripDestination[]
@@ -87,6 +88,7 @@ export interface TravelRequest {
   rentalCarsSelfDrive?: TripRentalCarSelfDrive[]
   carsWithDriver?: TripCarWithDriver[]
   embassyServices?: TripEmbassyService[]
+  meetAssist?: TripMeetAssist[]
   hotels?: TripHotel[]
   events?: TripEvent[]
   passengers?: TripPassenger[]
@@ -308,6 +310,45 @@ export interface TripEmbassyPassenger {
   createdAt: Date
 }
 
+// Meet & Assist
+export interface TripMeetAssist {
+  id: number
+  travelRequestId: number
+  serviceType: string // ARRIVAL, DEPARTURE, BOTH, TRANSIT
+  serviceProvider: string | null
+  airport: string
+  airportName: string | null
+  terminal: string | null
+  flightNumber: string | null
+  serviceDate: Date | null
+  serviceTime: string | null
+  meetingPoint: string | null
+  greeterName: string | null
+  greeterPhone: string | null
+  greeterEmail: string | null
+  numberOfPassengers: number | null
+  vipLevel: string | null // STANDARD, PREMIUM, VIP, VVIP
+  includesFastTrack: boolean
+  includesLounge: boolean
+  includesPorterage: boolean
+  includesBuggy: boolean
+  loungeAccess: string | null
+  specialRequests: string | null
+  pricePerPerson: number | null
+  totalPrice: number | null
+  currency: string
+  bookingReference: string | null
+  confirmationNumber: string | null
+  contactPerson: string | null
+  contactPhone: string | null
+  contactEmail: string | null
+  websiteUrl: string | null
+  status: string
+  notes: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
 // Hotel
 export interface TripHotel {
   id: number
@@ -339,6 +380,7 @@ export interface TripHotelRoom {
   connectedToRoom: string | null
   pricePerNight: number | null
   includesBreakfast: boolean
+  websiteUrl: string | null // URL to room details on hotel website
   createdAt: Date
   assignments?: TripRoomAssignment[]
 }

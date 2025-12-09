@@ -109,20 +109,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check for existing stakeholder with same email
-    if (email) {
-      const existingStakeholder = await prisma.stakeholder.findFirst({
-        where: { email }
-      })
-
-      if (existingStakeholder) {
-        return NextResponse.json(
-          { error: 'Stakeholder with this email already exists' },
-          { status: 409 }
-        )
-      }
-    }
-
     // Create the stakeholder
     const stakeholder = await prisma.stakeholder.create({
       data: {

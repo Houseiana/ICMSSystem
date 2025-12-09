@@ -38,6 +38,7 @@ export async function GET(
           }
         },
         embassyServices: true,
+        meetAssist: true,
         trains: true,
         rentalCarsSelfDrive: true,
         carsWithDriver: true,

@@ -94,57 +94,80 @@ export default function StakeholderForm({
 
   const [loading, setLoading] = useState(false)
 
+  // Helper to format date for input fields
+  const formatDateForInput = (date: any): string => {
+    if (!date) return ''
+    try {
+      const d = new Date(date)
+      return d.toISOString().split('T')[0]
+    } catch {
+      return ''
+    }
+  }
+
   useEffect(() => {
     if (stakeholder) {
-      setFormData({
-        firstName: stakeholder.firstName || '',
-        middleName: stakeholder.middleName || '',
-        lastName: stakeholder.lastName || '',
-        preferredName: stakeholder.preferredName || '',
-        email: stakeholder.email || '',
-        phone: stakeholder.phone || '',
-        alternatePhone: '',
-        dateOfBirth: '',
-        placeOfBirth: '',
-        gender: stakeholder.gender || '',
-        nationality: '',
-        religion: '',
-        address: '',
-        city: '',
-        state: '',
-        postalCode: '',
-        country: '',
-        nationalId: '',
-        passportNumber: '',
-        passportExpiry: '',
-        passportIssuingCountry: '',
-        visaStatus: '',
-        visaType: '',
-        visaNumber: '',
-        visaValidFrom: '',
-        visaValidTo: '',
-        visaCategory: '',
-        visaEntries: '',
-        occupation: stakeholder.occupation || '',
-        employer: '',
-        workAddress: '',
-        bloodGroup: '',
-        medicalConditions: '',
-        allergies: '',
-        notes: '',
-        maritalStatus: '',
-        languages: '',
-        photoUrl: '',
-        qidDocumentUrl: '',
-        passportDocumentUrl: '',
-        qidNumber: '',
-        qidIssueDate: '',
-        qidExpiryDate: '',
-        qidLocation: '',
-        spouseId: stakeholder.spouse?.id.toString() || '',
-        fatherId: '',
-        motherId: ''
-      })
+      // Fetch full stakeholder data to get all fields
+      const fetchFullData = async () => {
+        try {
+          const response = await fetch(`/api/stakeholders/${stakeholder.id}`)
+          if (response.ok) {
+            const fullData = await response.json()
+            setFormData({
+              firstName: fullData.firstName || '',
+              middleName: fullData.middleName || '',
+              lastName: fullData.lastName || '',
+              preferredName: fullData.preferredName || '',
+              email: fullData.email || '',
+              phone: fullData.phone || '',
+              alternatePhone: fullData.alternatePhone || '',
+              dateOfBirth: formatDateForInput(fullData.dateOfBirth),
+              placeOfBirth: fullData.placeOfBirth || '',
+              gender: fullData.gender || '',
+              nationality: fullData.nationality || '',
+              religion: fullData.religion || '',
+              address: fullData.address || '',
+              city: fullData.city || '',
+              state: fullData.state || '',
+              postalCode: fullData.postalCode || '',
+              country: fullData.country || '',
+              nationalId: fullData.nationalId || '',
+              passportNumber: fullData.passportNumber || '',
+              passportExpiry: formatDateForInput(fullData.passportExpiry),
+              passportIssuingCountry: fullData.passportIssuingCountry || '',
+              visaStatus: fullData.visaStatus || '',
+              visaType: fullData.visaType || '',
+              visaNumber: fullData.visaNumber || '',
+              visaValidFrom: formatDateForInput(fullData.visaValidFrom),
+              visaValidTo: formatDateForInput(fullData.visaValidTo),
+              visaCategory: fullData.visaCategory || '',
+              visaEntries: fullData.visaEntries || '',
+              occupation: fullData.occupation || '',
+              employer: fullData.employer || '',
+              workAddress: fullData.workAddress || '',
+              bloodGroup: fullData.bloodGroup || '',
+              medicalConditions: fullData.medicalConditions || '',
+              allergies: fullData.allergies || '',
+              notes: fullData.notes || '',
+              maritalStatus: fullData.maritalStatus || '',
+              languages: fullData.languages || '',
+              photoUrl: fullData.photoUrl || '',
+              qidDocumentUrl: fullData.qidDocumentUrl || '',
+              passportDocumentUrl: fullData.passportDocumentUrl || '',
+              qidNumber: fullData.qidNumber || '',
+              qidIssueDate: formatDateForInput(fullData.qidIssueDate),
+              qidExpiryDate: formatDateForInput(fullData.qidExpiryDate),
+              qidLocation: fullData.qidLocation || '',
+              spouseId: fullData.spouse?.id?.toString() || fullData.spouseId?.toString() || '',
+              fatherId: fullData.father?.id?.toString() || fullData.fatherId?.toString() || '',
+              motherId: fullData.mother?.id?.toString() || fullData.motherId?.toString() || ''
+            })
+          }
+        } catch (error) {
+          console.error('Error fetching stakeholder data:', error)
+        }
+      }
+      fetchFullData()
     } else {
       setFormData({
         firstName: '',

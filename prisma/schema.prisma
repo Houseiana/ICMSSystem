@@ -85,7 +85,7 @@ model Employee {
   visaExpiry      DateTime?
 
   // QID (Qatar ID) Information
-  qidNumber       String?          @unique
+  qidNumber       String?
   qidIssueDate    DateTime?
   qidExpiryDate   DateTime?
   qidLocation     String?          // Where QID was issued
@@ -264,7 +264,7 @@ model Stakeholder {
   middleName      String?
   lastName        String
   preferredName   String?
-  email           String?   @unique
+  email           String?
   phone           String?
   alternatePhone  String?
   dateOfBirth     DateTime?
@@ -298,7 +298,7 @@ model Stakeholder {
   visaEntries     String?   // SINGLE, MULTIPLE
 
   // QID (Qatar ID) Information
-  qidNumber       String?          @unique
+  qidNumber       String?
   qidIssueDate    DateTime?
   qidExpiryDate   DateTime?
   qidLocation     String?          // Where QID was issued
@@ -1448,6 +1448,7 @@ model TravelRequest {
   needsRentalCar  Boolean   @default(false)
   needsCarWithDriver Boolean @default(false)
   needsEvents     Boolean   @default(false)
+  needsMeetAssist Boolean   @default(false)
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -1462,6 +1463,7 @@ model TravelRequest {
   rentalCarsSelfDrive TripRentalCarSelfDrive[]
   carsWithDriver  TripCarWithDriver[]
   events          TripEvent[]
+  meetAssist      TripMeetAssist[]
   passengers      TripPassenger[]
   communications  TripCommunication[]
   notifications   TripNotification[]
@@ -1607,6 +1609,7 @@ model TripHotelRoom {
   connectedToRoom   String?   // Reference to connected room/suite
   pricePerNight     Float?
   includesBreakfast Boolean   @default(false)
+  websiteUrl        String?   // URL to room details on hotel website
   createdAt         DateTime  @default(now())
 
   hotel             TripHotel @relation(fields: [tripHotelId], references: [id], onDelete: Cascade)
@@ -1694,26 +1697,27 @@ model TripTrainPassenger {
 }
 
 model TripRentalCarSelfDrive {
-  id                Int       @id @default(autoincrement())
-  travelRequestId   Int
-  driverPersonType  String
-  driverPersonId    Int
-  carType           String?
-  carModel          String?
-  rentalCompany     String?
-  pickupLocation    String?
-  pickupDate        DateTime?
-  pickupTime        String?
-  returnLocation    String?
-  returnDate        DateTime?
-  returnTime        String?
-  insuranceType     String?
-  bookingReference  String?
-  status            String    @default("PENDING")
-  notes             String?
-  createdAt         DateTime  @default(now())
+  id                  Int       @id @default(autoincrement())
+  travelRequestId     Int
+  driverPersonType    String
+  driverPersonId      Int
+  additionalDrivers   Json?     // Array of { personType, personId }
+  carType             String?
+  carModel            String?
+  rentalCompany       String?
+  pickupLocation      String?
+  pickupDate          DateTime?
+  pickupTime          String?
+  returnLocation      String?
+  returnDate          DateTime?
+  returnTime          String?
+  insuranceType       String?
+  bookingReference    String?
+  status              String    @default("PENDING")
+  notes               String?
+  createdAt           DateTime  @default(now())
 
-  travelRequest     TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
+  travelRequest       TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
 }
 
 model TripCarWithDriver {
@@ -1809,6 +1813,46 @@ model TripEventAttachment {
   event             TripEvent @relation(fields: [tripEventId], references: [id], onDelete: Cascade)
 }
 
+model TripMeetAssist {
+  id                  Int       @id @default(autoincrement())
+  travelRequestId     Int
+  serviceType         String    // ARRIVAL, DEPARTURE, BOTH, TRANSIT
+  serviceProvider     String?   // Company name providing the service
+  airport             String    // Airport code or name
+  airportName         String?   // Full airport name
+  terminal            String?
+  flightNumber        String?   // Associated flight number
+  serviceDate         DateTime?
+  serviceTime         String?
+  meetingPoint        String?   // Where to meet (e.g., "Gate B12", "Arrival Hall")
+  greeterName         String?   // Name of person meeting
+  greeterPhone        String?
+  greeterEmail        String?
+  numberOfPassengers  Int?
+  vipLevel            String?   // STANDARD, PREMIUM, VIP, VVIP
+  includesFastTrack   Boolean   @default(false)
+  includesLounge      Boolean   @default(false)
+  includesPorterage   Boolean   @default(false)
+  includesBuggy       Boolean   @default(false)
+  loungeAccess        String?   // Lounge name if applicable
+  specialRequests     String?
+  pricePerPerson      Float?
+  totalPrice          Float?
+  currency            String    @default("USD")
+  bookingReference    String?
+  confirmationNumber  String?
+  contactPerson       String?
+  contactPhone        String?
+  contactEmail        String?
+  websiteUrl          String?
+  status              String    @default("PENDING") // PENDING, CONFIRMED, CANCELLED
+  notes               String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  travelRequest       TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
+}
+
 model TripPassenger {
   id                      Int       @id @default(autoincrement())
   travelRequestId         Int
@@ -1891,3 +1935,1241 @@ model TripNotification {
   travelRequest     TravelRequest @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
 }
 
+// ==========================================
+// FINANCE MANAGEMENT SYSTEM
+// ==========================================
+
+model RealEstate {
+  id                Int       @id @default(autoincrement())
+
+  // Property Information
+  propertyName      String
+  propertyType      String    // RESIDENTIAL, COMMERCIAL, LAND, INDUSTRIAL, MIXED_USE
+  subType           String?   // APARTMENT, VILLA, OFFICE, WAREHOUSE, SHOP, FARM, etc.
+  description       String?
+
+  // Location
+  address           String?
+  city              String?
+  state             String?
+  country           String?
+  postalCode        String?
+  coordinates       String?   // GPS coordinates
+
+  // Ownership
+  ownershipType     String    @default("OWNED") // OWNED, LEASED, MORTGAGED, JOINT_OWNERSHIP
+  ownershipPercentage Float?  @default(100)
+  purchaseDate      DateTime?
+  purchasePrice     Float?
+  currentValue      Float?
+  valuationDate     DateTime?
+
+  // Property Details
+  totalArea         Float?    // in square meters/feet
+  builtUpArea       Float?
+  landArea          Float?
+  bedrooms          Int?
+  bathrooms         Int?
+  parkingSpaces     Int?
+  floors            Int?
+  yearBuilt         Int?
+
+  // Building-specific (for BUILDING subType)
+  totalFlats        Int?      // Total number of flats in building
+
+  // Financial
+  currency          String    @default("USD")
+  monthlyRent       Float?    // if rented out
+  rentalYield       Float?
+  maintenanceCost   Float?    // monthly
+  propertyTax       Float?    // annual
+  insuranceCost     Float?    // annual
+
+  // Mortgage/Loan
+  hasMortgage       Boolean   @default(false)
+  mortgageProvider  String?
+  mortgageAmount    Float?
+  mortgageBalance   Float?
+  mortgageRate      Float?    // interest rate
+  mortgageStartDate DateTime?
+  mortgageEndDate   DateTime?
+  monthlyPayment    Float?
+
+  // Tenant Information (if rented)
+  isRented          Boolean   @default(false)
+  tenantName        String?
+  tenantContact     String?
+  leaseStartDate    DateTime?
+  leaseEndDate      DateTime?
+  securityDeposit   Float?
+
+  // Documents
+  titleDeedUrl      String?
+  purchaseContractUrl String?
+  valuationReportUrl String?
+  insurancePolicyUrl String?
+
+  // Status
+  status            String    @default("ACTIVE") // ACTIVE, SOLD, UNDER_CONSTRUCTION, UNDER_RENOVATION
+  notes             String?
+  tags              String?   // JSON array
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  tenants           RealEstateTenant[]
+  flatTypes         FlatType[]
+
+  @@index([propertyType])
+  @@index([status])
+  @@index([country, city])
+}
+
+model FlatType {
+  id                Int       @id @default(autoincrement())
+  realEstateId      Int
+  realEstate        RealEstate @relation(fields: [realEstateId], references: [id], onDelete: Cascade)
+
+  // Flat Type Information
+  typeName          String    // e.g., "1BR Standard", "2BR Deluxe", "Studio"
+  description       String?
+
+  // Unit Details
+  bedrooms          Int
+  bathrooms         Int
+  totalArea         Float?    // in square meters
+
+  // Features
+  isFurnished       Boolean   @default(false)
+  includesUtilities Boolean   @default(false) // Water, electricity, etc.
+
+  // Facility Access
+  facilityAccess    String?   // JSON array: NONE, POOL, GYM, PARKING, GARDEN, SECURITY, PLAYGROUND, etc.
+
+  // Financial
+  monthlyRate       Float     // Current monthly rental rate
+  currency          String    @default("QAR")
+
+  // Availability
+  totalUnits        Int?      // How many of this type exist in the building
+  availableUnits    Int?      // How many are currently available
+
+  notes             String?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Flat Units (individual apartments)
+  flatUnits         FlatUnit[]
+
+  @@index([realEstateId])
+}
+
+// Individual Flat/Apartment Unit
+model FlatUnit {
+  id                Int       @id @default(autoincrement())
+  flatTypeId        Int
+  flatType          FlatType  @relation(fields: [flatTypeId], references: [id], onDelete: Cascade)
+
+  // Unit Identification
+  unitNumber        String    // e.g., "101", "A-201", "Floor 3 - Unit 5"
+  floor             Int?
+
+  // Status
+  status            String    @default("VACANT") // VACANT, OCCUPIED, UNDER_RENOVATION, RESERVED
+
+  // Tenant Information (when occupied)
+  tenantName        String?
+  tenantPhone       String?
+  tenantQID         String?   // Qatar ID Number
+
+  // Utility Numbers
+  waterAccountNo    String?
+  electricityAccountNo String?
+
+  // Contract Details
+  contractStartDate DateTime?
+  contractEndDate   DateTime?
+  monthlyRent       Float?
+  currency          String    @default("QAR")
+
+  // Guarantee/Security
+  guaranteeType     String?   // CHEQUE, CASH, NONE
+  guaranteeAmount   Float?
+  guaranteeChequeNo String?
+  guaranteeBank     String?
+
+  notes             String?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Monthly Payment Records
+  monthlyRecords    FlatMonthlyRecord[]
+
+  @@index([flatTypeId])
+}
+
+// Monthly Payment/Status Record for each flat
+model FlatMonthlyRecord {
+  id                Int       @id @default(autoincrement())
+  flatUnitId        Int
+  flatUnit          FlatUnit  @relation(fields: [flatUnitId], references: [id], onDelete: Cascade)
+
+  // Period
+  year              Int
+  month             Int       // 1-12 (January = 1)
+
+  // Status for this month
+  status            String    @default("VACANT") // OCCUPIED, VACANT, UNDER_RENOVATION, FREE_MONTH
+
+  // Payment Details (if occupied)
+  rentAmount        Float?
+  paymentMethod     String?   // CHEQUE, CASH, BANK_TRANSFER, FREE
+  chequeNumber      String?
+  bankName          String?
+  paymentDate       DateTime?
+  isPaid            Boolean   @default(false)
+
+  notes             String?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([flatUnitId, year, month])
+  @@index([flatUnitId])
+  @@index([year, month])
+}
+
+model RealEstateTenant {
+  id                Int       @id @default(autoincrement())
+  realEstateId      Int
+  realEstate        RealEstate @relation(fields: [realEstateId], references: [id], onDelete: Cascade)
+
+  // Tenant Information
+  tenantName        String
+  tenantPhone       String?
+  tenantEmail       String?
+  qidNumber         String?   // Qatar ID
+
+  // Contract Details
+  rentAmount        Float
+  currency          String    @default("QAR")
+  contractStartDate DateTime
+  contractEndDate   DateTime
+  securityDeposit   Float?
+
+  // Payment Status
+  paymentStatus     String    @default("ACTIVE") // ACTIVE, OVERDUE, TERMINATED
+  lastPaymentDate   DateTime?
+  nextPaymentDate   DateTime?
+
+  // Additional Info
+  unitNumber        String?   // For multi-unit properties
+  notes             String?
+  contractUrl       String?   // Contract document URL
+  qidDocumentUrl    String?   // QID document URL
+
+  // Status
+  status            String    @default("ACTIVE") // ACTIVE, EXPIRED, TERMINATED
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Payment History
+  payments          TenantPayment[]
+
+  @@index([realEstateId])
+  @@index([status])
+  @@index([contractEndDate])
+}
+
+model TenantPayment {
+  id                Int       @id @default(autoincrement())
+  tenantId          Int
+  tenant            RealEstateTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  // Payment Details
+  amount            Float
+  currency          String    @default("QAR")
+  paymentDate       DateTime
+  periodStart       DateTime
+  periodEnd         DateTime
+
+  // Payment Info
+  paymentMethod     String?   // CASH, BANK_TRANSFER, CHECK, CARD
+  transactionRef    String?
+  receiptUrl        String?
+
+  // Status
+  status            String    @default("PAID") // PENDING, PAID, LATE, PARTIAL
+  notes             String?
+
+  createdAt         DateTime  @default(now())
+
+  @@index([tenantId])
+  @@index([paymentDate])
+}
+
+model Salary {
+  id                Int       @id @default(autoincrement())
+
+  // Person Information
+  personType        String    // EMPLOYEE, TASK_HELPER, CONTRACTOR
+  personId          Int
+  personName        String
+
+  // Employment Details
+  position          String?
+  department        String?
+  employerId        Int?
+  employerName      String?
+
+  // Salary Structure
+  salaryType        String    @default("MONTHLY") // HOURLY, DAILY, WEEKLY, MONTHLY, ANNUAL
+  baseSalary        Float
+  currency          String    @default("USD")
+
+  // Allowances
+  housingAllowance  Float?
+  transportAllowance Float?
+  mealAllowance     Float?
+  phoneAllowance    Float?
+  otherAllowances   Float?
+  allowanceDetails  String?   // JSON object with breakdown
+
+  // Deductions
+  taxDeduction      Float?
+  socialSecurity    Float?
+  pensionContribution Float?
+  healthInsurance   Float?
+  otherDeductions   Float?
+  deductionDetails  String?   // JSON object with breakdown
+
+  // Calculated Fields
+  grossSalary       Float?
+  netSalary         Float?
+
+  // Payment Information
+  paymentFrequency  String    @default("MONTHLY") // WEEKLY, BI_WEEKLY, MONTHLY
+  paymentMethod     String?   // BANK_TRANSFER, CASH, CHECK
+  bankName          String?
+  accountNumber     String?
+
+  // Period
+  effectiveDate     DateTime
+  endDate           DateTime?
+
+  // Status
+  status            String    @default("ACTIVE") // ACTIVE, SUSPENDED, TERMINATED
+  notes             String?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Related payments
+  payments          SalaryPayment[]
+
+  @@index([personType, personId])
+  @@index([status])
+}
+
+model SalaryPayment {
+  id                Int       @id @default(autoincrement())
+  salaryId          Int
+  salary            Salary    @relation(fields: [salaryId], references: [id], onDelete: Cascade)
+
+  // Payment Details
+  paymentDate       DateTime
+  periodStart       DateTime
+  periodEnd         DateTime
+
+  // Amounts
+  baseSalaryPaid    Float
+  allowancesPaid    Float?
+  deductions        Float?
+  bonus             Float?
+  overtime          Float?
+  netAmount         Float
+  currency          String    @default("USD")
+
+  // Payment Info
+  paymentMethod     String?
+  transactionRef    String?
+
+  // Status
+  status            String    @default("PAID") // PENDING, PAID, FAILED, CANCELLED
+  notes             String?
+
+  createdAt         DateTime  @default(now())
+
+  @@index([salaryId])
+  @@index([paymentDate])
+}
+
+model Asset {
+  id                Int       @id @default(autoincrement())
+
+  // Asset Information
+  assetName         String
+  assetType         String    // VEHICLE, EQUIPMENT, FURNITURE, ELECTRONICS, JEWELRY, ART, INVESTMENT, STOCKS, BONDS, CRYPTO, OTHER
+  category          String?
+  description       String?
+  serialNumber      String?
+  model             String?
+  manufacturer      String?
+
+  // Ownership
+  ownerType         String?   // PERSONAL, COMPANY, JOINT
+  ownerId           Int?
+  ownerName         String?
+
+  // Financial
+  purchaseDate      DateTime?
+  purchasePrice     Float?
+  currentValue      Float?
+  valuationDate     DateTime?
+  currency          String    @default("USD")
+  depreciationRate  Float?    // annual depreciation percentage
+  depreciatedValue  Float?
+
+  // For Investments
+  investmentType    String?   // STOCKS, BONDS, MUTUAL_FUNDS, ETF, CRYPTO, etc.
+  ticker            String?   // Stock ticker symbol
+  quantity          Float?    // Number of units/shares
+  pricePerUnit      Float?
+
+  // Location
+  location          String?
+  storageDetails    String?
+
+  // Insurance
+  isInsured         Boolean   @default(false)
+  insuranceProvider String?
+  insurancePolicyNo String?
+  insuranceValue    Float?
+  insuranceExpiry   DateTime?
+
+  // Warranty
+  hasWarranty       Boolean   @default(false)
+  warrantyProvider  String?
+  warrantyExpiry    DateTime?
+
+  // Documents
+  purchaseReceiptUrl String?
+  warrantyDocUrl    String?
+  insuranceDocUrl   String?
+  photosUrls        String?   // JSON array of photo URLs
+
+  // Status
+  status            String    @default("ACTIVE") // ACTIVE, SOLD, DISPOSED, LOST, DAMAGED
+  disposalDate      DateTime?
+  disposalAmount    Float?
+  disposalMethod    String?   // SOLD, DONATED, SCRAPPED
+
+  notes             String?
+  tags              String?   // JSON array
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([assetType])
+  @@index([status])
+}
+
+model Dividend {
+  id                Int       @id @default(autoincrement())
+
+  // Source Information
+  sourceType        String    // STOCK, BOND, MUTUAL_FUND, REAL_ESTATE, BUSINESS, OTHER
+  sourceName        String    // Company name, fund name, etc.
+  ticker            String?   // Stock ticker if applicable
+
+  // Investment Details
+  assetId           Int?      // Reference to Asset if applicable
+  sharesOwned       Float?
+  ownershipPercentage Float?
+
+  // Dividend Details
+  dividendType      String    @default("CASH") // CASH, STOCK, REINVESTED
+  dividendFrequency String?   // QUARTERLY, SEMI_ANNUAL, ANNUAL, IRREGULAR
+
+  // Amount
+  grossAmount       Float
+  taxWithheld       Float?
+  netAmount         Float
+  currency          String    @default("USD")
+
+  // Per Share (if applicable)
+  dividendPerShare  Float?
+
+  // Dates
+  declarationDate   DateTime?
+  exDividendDate    DateTime?
+  recordDate        DateTime?
+  paymentDate       DateTime
+
+  // Payment Info
+  paymentMethod     String?   // BANK_TRANSFER, CHECK, REINVESTED
+  transactionRef    String?
+
+  // Tax
+  taxYear           Int?
+  taxReportable     Boolean   @default(true)
+
+  notes             String?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([sourceType])
+  @@index([paymentDate])
+}
+
+model Liability {
+  id                Int       @id @default(autoincrement())
+
+  // Liability Information
+  liabilityName     String
+  liabilityType     String    // LOAN, MORTGAGE, CREDIT_CARD, LINE_OF_CREDIT, PERSONAL_LOAN, CAR_LOAN, STUDENT_LOAN, BUSINESS_LOAN, OTHER
+  description       String?
+
+  // Creditor Information
+  creditorName      String
+  creditorContact   String?
+  creditorAddress   String?
+  accountNumber     String?
+
+  // Amounts
+  originalAmount    Float
+  currentBalance    Float
+  currency          String    @default("USD")
+
+  // Interest
+  interestRate      Float?
+  interestType      String?   @default("FIXED") // FIXED, VARIABLE
+  apr               Float?    // Annual Percentage Rate
+
+  // Payment Schedule
+  paymentFrequency  String    @default("MONTHLY") // WEEKLY, BI_WEEKLY, MONTHLY, QUARTERLY, ANNUAL
+  minimumPayment    Float?
+  regularPayment    Float?
+
+  // Dates
+  startDate         DateTime
+  dueDate           DateTime?  // Final due date
+  nextPaymentDate   DateTime?
+  lastPaymentDate   DateTime?
+  lastPaymentAmount Float?
+
+  // Security/Collateral
+  isSecured         Boolean   @default(false)
+  collateralType    String?
+  collateralValue   Float?
+  collateralDetails String?
+
+  // Documents
+  contractUrl       String?
+  statementUrl      String?
+
+  // Status
+  status            String    @default("ACTIVE") // ACTIVE, PAID_OFF, DEFAULTED, RESTRUCTURED, WRITTEN_OFF
+  notes             String?
+  tags              String?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Related payments
+  payments          LiabilityPayment[]
+
+  @@index([liabilityType])
+  @@index([status])
+}
+
+model LiabilityPayment {
+  id                Int       @id @default(autoincrement())
+  liabilityId       Int
+  liability         Liability @relation(fields: [liabilityId], references: [id], onDelete: Cascade)
+
+  // Payment Details
+  paymentDate       DateTime
+  amount            Float
+  principalPaid     Float?
+  interestPaid      Float?
+  feesPaid          Float?
+  currency          String    @default("USD")
+
+  // Balance
+  balanceAfter      Float?
+
+  // Payment Info
+  paymentMethod     String?
+  transactionRef    String?
+
+  // Status
+  status            String    @default("COMPLETED") // PENDING, COMPLETED, FAILED, REVERSED
+  notes             String?
+
+  createdAt         DateTime  @default(now())
+
+  @@index([liabilityId])
+  @@index([paymentDate])
+}
+
+model MonthlyPayment {
+  id                Int       @id @default(autoincrement())
+
+  // Payment Information
+  paymentName       String
+  paymentType       String    // UTILITY, SUBSCRIPTION, INSURANCE, RENT, MAINTENANCE, SERVICE, MEMBERSHIP, OTHER
+  category          String?   // ELECTRICITY, WATER, GAS, INTERNET, PHONE, NETFLIX, GYM, etc.
+  description       String?
+
+  // Provider/Vendor
+  vendorName        String?
+  vendorContact     String?
+  accountNumber     String?
+
+  // Amount
+  amount            Float
+  currency          String    @default("USD")
+  isFixed           Boolean   @default(true)  // Fixed or variable amount
+  averageAmount     Float?    // For variable payments
+
+  // Schedule
+  frequency         String    @default("MONTHLY") // WEEKLY, BI_WEEKLY, MONTHLY, QUARTERLY, ANNUAL
+  dueDay            Int?      // Day of month payment is due
+  billingCycleStart Int?      // Day billing cycle starts
+  billingCycleEnd   Int?      // Day billing cycle ends
+
+  // Auto-payment
+  isAutoPay         Boolean   @default(false)
+  autoPayMethod     String?   // BANK_ACCOUNT, CREDIT_CARD, DEBIT_CARD
+  autoPayAccountLast4 String? // Last 4 digits of payment method
+
+  // Dates
+  startDate         DateTime?
+  endDate           DateTime?
+  nextDueDate       DateTime?
+  lastPaymentDate   DateTime?
+  lastPaymentAmount Float?
+
+  // Reminders
+  reminderEnabled   Boolean   @default(true)
+  reminderDaysBefore Int?     @default(3)
+
+  // Documents
+  contractUrl       String?
+  lastBillUrl       String?
+
+  // Status
+  status            String    @default("ACTIVE") // ACTIVE, PAUSED, CANCELLED
+  notes             String?
+  tags              String?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Related payments
+  payments          MonthlyPaymentRecord[]
+
+  @@index([paymentType])
+  @@index([status])
+}
+
+model MonthlyPaymentRecord {
+  id                Int       @id @default(autoincrement())
+  monthlyPaymentId  Int
+  monthlyPayment    MonthlyPayment @relation(fields: [monthlyPaymentId], references: [id], onDelete: Cascade)
+
+  // Payment Details
+  dueDate           DateTime
+  paymentDate       DateTime?
+  amount            Float
+  currency          String    @default("USD")
+
+  // Billing Period
+  periodStart       DateTime?
+  periodEnd         DateTime?
+
+  // Payment Info
+  paymentMethod     String?
+  transactionRef    String?
+
+  // Status
+  status            String    @default("PENDING") // PENDING, PAID, LATE, MISSED, WAIVED
+  lateFee           Float?
+  notes             String?
+
+  createdAt         DateTime  @default(now())
+
+  @@index([monthlyPaymentId])
+  @@index([dueDate])
+  @@index([status])
+}
+
+// ==========================================
+// CARS MANAGEMENT
+// ==========================================
+
+model Car {
+  id                Int       @id @default(autoincrement())
+
+  // Vehicle Information
+  vehicleName       String    // Display name (e.g., "Mercedes S-Class 2023")
+  make              String    // Manufacturer (Mercedes, BMW, Toyota, etc.)
+  model             String    // Model name
+  year              Int       // Year of manufacture
+  variant           String?   // Trim/variant (e.g., "AMG", "Sport", "Limited")
+  vin               String?   @unique // Vehicle Identification Number
+  licensePlate      String?
+  color             String?
+  interiorColor     String?
+
+  // Vehicle Type
+  vehicleType       String    @default("SEDAN") // SEDAN, SUV, COUPE, HATCHBACK, PICKUP, VAN, SPORTS, LUXURY, ELECTRIC
+  fuelType          String?   // PETROL, DIESEL, HYBRID, ELECTRIC, LPG
+  transmission      String?   // AUTOMATIC, MANUAL, CVT
+
+  // Engine & Performance
+  engineSize        Float?    // in liters
+  horsepower        Int?
+  cylinders         Int?
+  mileage           Int?      // Current mileage in KM
+  mileageUnit       String    @default("KM") // KM, MILES
+
+  // Ownership
+  ownershipType     String    @default("OWNED") // OWNED, LEASED, FINANCED, COMPANY_CAR
+  ownershipPercentage Float?  @default(100)
+  purchaseDate      DateTime?
+  purchasePrice     Float?
+  currentValue      Float?
+  valuationDate     DateTime?
+  currency          String    @default("QAR")
+
+  // Registration
+  registrationNumber String?
+  registrationExpiry DateTime?
+  registrationCountry String   @default("Qatar")
+  registrationCity  String?
+
+  // Insurance
+  isInsured         Boolean   @default(false)
+  insuranceProvider String?
+  insurancePolicyNo String?
+  insuranceType     String?   // COMPREHENSIVE, THIRD_PARTY, COLLISION
+  insuranceExpiry   DateTime?
+  insurancePremium  Float?    // Annual premium
+  insuranceCoverage Float?    // Coverage amount
+
+  // Financing (if applicable)
+  isFinanced        Boolean   @default(false)
+  financeProvider   String?
+  financeAmount     Float?
+  financeBalance    Float?
+  interestRate      Float?
+  monthlyPayment    Float?
+  financeStartDate  DateTime?
+  financeEndDate    DateTime?
+
+  // Maintenance
+  lastServiceDate   DateTime?
+  nextServiceDue    DateTime?
+  serviceMileage    Int?      // Next service due at this mileage
+  warrantyExpiry    DateTime?
+
+  // Location
+  currentLocation   String?   // Where the car is usually kept
+  parkingDetails    String?
+
+  // Documents
+  registrationDocUrl String?
+  insuranceDocUrl   String?
+  purchaseReceiptUrl String?
+  serviceHistoryUrl String?
+  photosUrls        String?   // JSON array of photo URLs
+
+  // Driver Information (if assigned)
+  assignedDriverName String?
+  assignedDriverPhone String?
+  assignedDriverId  Int?
+
+  // Status
+  status            String    @default("ACTIVE") // ACTIVE, SOLD, IN_SERVICE, ACCIDENT, WRITTEN_OFF
+  disposalDate      DateTime?
+  salePrice         Float?
+
+  notes             String?
+  tags              String?   // JSON array
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Related expenses
+  expenses          CarExpense[]
+
+  @@index([make])
+  @@index([status])
+  @@index([vehicleType])
+}
+
+model CarExpense {
+  id                Int       @id @default(autoincrement())
+  carId             Int
+  car               Car       @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  // Expense Details
+  expenseType       String    // FUEL, SERVICE, REPAIR, INSURANCE, REGISTRATION, PARKING, FINE, TOLL, OTHER
+  description       String?
+  amount            Float
+  currency          String    @default("QAR")
+  expenseDate       DateTime
+  vendor            String?
+  receiptUrl        String?
+  mileageAtExpense  Int?
+
+  // For Service/Repair
+  serviceDetails    String?   // JSON array of work done
+  partsReplaced     String?   // JSON array of parts
+
+  notes             String?
+
+  createdAt         DateTime  @default(now())
+
+  @@index([carId])
+  @@index([expenseType])
+  @@index([expenseDate])
+}
+
+// ==========================================
+// CARS UK MANAGEMENT
+// ==========================================
+
+model CarUK {
+  id                Int       @id @default(autoincrement())
+
+  // Vehicle Information
+  vehicleName       String    // Display name
+  make              String
+  model             String
+  year              Int
+  variant           String?
+  vin               String?   @unique
+  licensePlate      String?   // UK format
+  color             String?
+  interiorColor     String?
+
+  // Vehicle Type
+  vehicleType       String    @default("SEDAN")
+  fuelType          String?
+  transmission      String?
+
+  // Engine & Performance
+  engineSize        Float?
+  horsepower        Int?
+  cylinders         Int?
+  mileage           Int?
+  mileageUnit       String    @default("MILES")
+
+  // Ownership
+  ownershipType     String    @default("OWNED")
+  ownershipPercentage Float?  @default(100)
+  purchaseDate      DateTime?
+  purchasePrice     Float?
+  currentValue      Float?
+  valuationDate     DateTime?
+  currency          String    @default("GBP")
+
+  // UK Registration
+  registrationNumber String?
+  registrationExpiry DateTime?
+  motExpiry         DateTime? // MOT test expiry (UK specific)
+  taxExpiry         DateTime? // Road tax expiry (UK specific)
+
+  // Insurance
+  isInsured         Boolean   @default(false)
+  insuranceProvider String?
+  insurancePolicyNo String?
+  insuranceType     String?
+  insuranceExpiry   DateTime?
+  insurancePremium  Float?
+  insuranceCoverage Float?
+
+  // Financing
+  isFinanced        Boolean   @default(false)
+  financeProvider   String?
+  financeAmount     Float?
+  financeBalance    Float?
+  interestRate      Float?
+  monthlyPayment    Float?
+  financeStartDate  DateTime?
+  financeEndDate    DateTime?
+
+  // Congestion & ULEZ
+  congestionZone    Boolean   @default(false) // In London congestion zone
+  ulezCompliant     Boolean   @default(true)  // Ultra Low Emission Zone compliant
+
+  // Location
+  currentLocation   String?
+  city              String?   @default("London")
+  parkingDetails    String?
+
+  // Documents
+  v5cDocUrl         String?   // V5C registration document (UK)
+  motCertificateUrl String?
+  insuranceDocUrl   String?
+  purchaseReceiptUrl String?
+  serviceHistoryUrl String?
+  photosUrls        String?
+
+  // Driver/Keeper Information
+  registeredKeeper  String?
+  keeperAddress     String?
+  assignedDriverName String?
+  assignedDriverPhone String?
+
+  // Status
+  status            String    @default("ACTIVE")
+  disposalDate      DateTime?
+  salePrice         Float?
+
+  notes             String?
+  tags              String?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Related expenses
+  expenses          CarUKExpense[]
+
+  @@index([make])
+  @@index([status])
+  @@index([city])
+}
+
+model CarUKExpense {
+  id                Int       @id @default(autoincrement())
+  carUKId           Int
+  carUK             CarUK     @relation(fields: [carUKId], references: [id], onDelete: Cascade)
+
+  // Expense Details
+  expenseType       String    // FUEL, SERVICE, MOT, ROAD_TAX, INSURANCE, CONGESTION_CHARGE, ULEZ, PARKING, FINE, TOLL, OTHER
+  description       String?
+  amount            Float
+  currency          String    @default("GBP")
+  expenseDate       DateTime
+  vendor            String?
+  receiptUrl        String?
+  mileageAtExpense  Int?
+
+  // For Service/Repair/MOT
+  serviceDetails    String?
+  partsReplaced     String?
+  motResult         String?   // PASS, FAIL, ADVISORY
+
+  notes             String?
+
+  createdAt         DateTime  @default(now())
+
+  @@index([carUKId])
+  @@index([expenseType])
+  @@index([expenseDate])
+}
+
+// ==========================================
+// PROPERTIES UK MANAGEMENT
+// ==========================================
+
+model PropertyUK {
+  id                Int       @id @default(autoincrement())
+
+  // Property Information
+  propertyName      String
+  propertyType      String    // RESIDENTIAL, COMMERCIAL, LAND, INDUSTRIAL, MIXED_USE
+  subType           String?   // FLAT, HOUSE, TERRACED, SEMI_DETACHED, DETACHED, BUNGALOW, MAISONETTE, STUDIO
+  description       String?
+
+  // Location
+  address           String?
+  addressLine2      String?
+  city              String?   @default("London")
+  county            String?
+  postcode          String?
+  coordinates       String?
+
+  // Ownership
+  ownershipType     String    @default("FREEHOLD") // FREEHOLD, LEASEHOLD, SHARE_OF_FREEHOLD
+  ownershipPercentage Float?  @default(100)
+  leaseLength       Int?      // Remaining years on leasehold
+  leaseExpiry       DateTime?
+  purchaseDate      DateTime?
+  purchasePrice     Float?
+  currentValue      Float?
+  valuationDate     DateTime?
+  currency          String    @default("GBP")
+
+  // Property Details
+  totalArea         Float?    // in square feet
+  bedrooms          Int?
+  bathrooms         Int?
+  receptionRooms    Int?
+  parkingSpaces     Int?
+  floors            Int?
+  yearBuilt         Int?
+  epcRating         String?   // Energy Performance Certificate (A-G)
+  councilTaxBand    String?   // A-H
+
+  // Financial
+  monthlyRent       Float?
+  rentalYield       Float?
+  groundRent        Float?    // For leasehold
+  serviceCharge     Float?    // Annual service charge
+  managementFee     Float?
+  councilTax        Float?    // Annual council tax
+  insuranceCost     Float?
+
+  // Mortgage/Loan
+  hasMortgage       Boolean   @default(false)
+  mortgageProvider  String?
+  mortgageType      String?   // FIXED, VARIABLE, TRACKER, OFFSET
+  mortgageAmount    Float?
+  mortgageBalance   Float?
+  mortgageRate      Float?
+  mortgageStartDate DateTime?
+  mortgageEndDate   DateTime?
+  monthlyPayment    Float?
+  ltv               Float?    // Loan to value ratio
+
+  // Tenant Information (if rented - BTL)
+  isRented          Boolean   @default(false)
+  tenantName        String?
+  tenantContact     String?
+  tenantEmail       String?
+  leaseStartDate    DateTime?
+  leaseEndDate      DateTime?
+  securityDeposit   Float?
+  depositScheme     String?   // DPS, TDS, MyDeposits
+  rentPaymentDay    Int?
+
+  // Management
+  managedBy         String?   // Self, Agent name
+  managingAgentName String?
+  managingAgentPhone String?
+  managingAgentEmail String?
+  managementFeePercent Float? // Percentage of rent
+
+  // Compliance (UK specific)
+  gassSafetyCertExpiry DateTime? // Gas safety certificate
+  eicirExpiry       DateTime? // Electrical Installation Condition Report
+  legionellaAssessment DateTime?
+  smokeAlarms       Boolean   @default(true)
+  coAlarms          Boolean   @default(true)
+  rightToRentCheck  Boolean   @default(false)
+
+  // Documents
+  titleDeedUrl      String?
+  purchaseContractUrl String?
+  epcCertificateUrl String?
+  mortgageOfferUrl  String?
+  insurancePolicyUrl String?
+  gasCertificateUrl String?
+  eicirUrl          String?
+  tenancyAgreementUrl String?
+
+  // Status
+  status            String    @default("ACTIVE") // ACTIVE, SOLD, UNDER_RENOVATION, VACANT
+  notes             String?
+  tags              String?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  tenants           PropertyUKTenant[]
+
+  @@index([propertyType])
+  @@index([status])
+  @@index([city])
+}
+
+model PropertyUKTenant {
+  id                Int       @id @default(autoincrement())
+  propertyUKId      Int
+  propertyUK        PropertyUK @relation(fields: [propertyUKId], references: [id], onDelete: Cascade)
+
+  // Tenant Information
+  tenantName        String
+  tenantPhone       String?
+  tenantEmail       String?
+  nationalInsuranceNo String? // UK NI number
+
+  // Contract Details
+  rentAmount        Float
+  currency          String    @default("GBP")
+  contractStartDate DateTime
+  contractEndDate   DateTime
+  securityDeposit   Float?
+  depositScheme     String?   // DPS, TDS, MyDeposits
+  depositReference  String?
+
+  // Payment Status
+  paymentStatus     String    @default("ACTIVE")
+  lastPaymentDate   DateTime?
+  nextPaymentDate   DateTime?
+  paymentDay        Int?      // Day of month rent is due
+
+  // Right to Rent (UK specific)
+  rightToRentChecked Boolean  @default(false)
+  rightToRentDate   DateTime?
+  rightToRentExpiry DateTime?
+
+  // Referencing
+  referencingCompleted Boolean @default(false)
+  referencingProvider String?
+  creditCheckPassed Boolean   @default(false)
+  guarantorRequired Boolean   @default(false)
+  guarantorName     String?
+  guarantorContact  String?
+
+  // Additional Info
+  unitNumber        String?
+  notes             String?
+  contractUrl       String?
+  idDocumentUrl     String?
+
+  // Status
+  status            String    @default("ACTIVE")
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Payment History
+  payments          PropertyUKPayment[]
+
+  @@index([propertyUKId])
+  @@index([status])
+  @@index([contractEndDate])
+}
+
+model PropertyUKPayment {
+  id                Int       @id @default(autoincrement())
+  tenantId          Int
+  tenant            PropertyUKTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  // Payment Details
+  amount            Float
+  currency          String    @default("GBP")
+  paymentDate       DateTime
+  periodStart       DateTime
+  periodEnd         DateTime
+
+  // Payment Info
+  paymentMethod     String?   // BANK_TRANSFER, STANDING_ORDER, DIRECT_DEBIT, CASH, CHECK
+  transactionRef    String?
+  receiptUrl        String?
+
+  // Status
+  status            String    @default("PAID")
+  notes             String?
+
+  createdAt         DateTime  @default(now())
+
+  @@index([tenantId])
+  @@index([paymentDate])
+}
+
+
+// ================================
+// DAILY OPERATIONS MODELS
+// ================================
+
+model Meeting {
+  id              Int       @id @default(autoincrement())
+  
+  // Meeting Details
+  title           String
+  description     String?
+  date            DateTime
+  startTime       String    // Format: "HH:mm"
+  endTime         String?   // Format: "HH:mm"
+  
+  // Location
+  location        String?   // Physical location or online meeting link
+  locationType    String    @default("IN_PERSON") // IN_PERSON, ONLINE, HYBRID
+  meetingLink     String?   // Zoom/Teams/Google Meet link
+  
+  // Purpose and Category
+  purpose         String?   // What the meeting is for
+  category        String    @default("GENERAL") // GENERAL, CLIENT, INTERNAL, INTERVIEW, REVIEW, OTHER
+  
+  // Participants
+  organizer       String?   // Who organized the meeting
+  participants    String?   // JSON array of participant names/emails
+  
+  // Related Entities
+  relatedTo       String?   // EMPLOYEE, EMPLOYER, STAKEHOLDER, etc.
+  relatedId       Int?      // ID of related entity
+  
+  // Status and Notes
+  status          String    @default("SCHEDULED") // SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED, POSTPONED
+  notes           String?
+  outcome         String?   // What was decided/achieved
+  
+  // Reminder
+  reminderBefore  Int?      // Minutes before meeting to remind
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([date])
+  @@index([status])
+  @@index([category])
+}
+
+model DailyTask {
+  id              Int       @id @default(autoincrement())
+  
+  // Task Details
+  title           String
+  description     String?
+  date            DateTime  // The day this task is scheduled for
+  
+  // Priority and Category
+  priority        String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  category        String    @default("GENERAL") // GENERAL, ADMIN, HR, FINANCE, LEGAL, IT, OTHER
+  
+  // Status
+  status          String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, CANCELLED, TRANSFERRED
+  completedAt     DateTime?
+  
+  // Notes and Actions
+  notes           String?   // General notes about the task
+  actionTaken     String?   // What action was taken for this task
+  nextStep        String?   // What is the next step after the action
+  
+  // Transfer functionality
+  transferredFrom Int?      // If transferred, ID of original task
+  transferredTo   DateTime? // If transferred, date it was transferred to
+  transferReason  String?   // Why the task was transferred
+  
+  // Related Entities
+  relatedTo       String?   // EMPLOYEE, EMPLOYER, STAKEHOLDER, MEETING, etc.
+  relatedId       Int?      // ID of related entity
+  
+  // Assignment
+  assignedTo      String?   // Who is responsible for this task
+  createdBy       String?   // Who created this task
+  
+  // Due time (optional)
+  dueTime         String?   // Format: "HH:mm" - specific time the task should be done by
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([date])
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+}

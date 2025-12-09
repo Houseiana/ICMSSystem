@@ -1,10 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { X, Plus } from 'lucide-react'
+import { useState } from 'react'
+import { X, Plus, UserPlus, Trash2 } from 'lucide-react'
+
+interface Passenger {
+  id: number
+  personType: string
+  personId: number
+  isMainPassenger: boolean
+  personDetails?: {
+    fullName?: string
+    companyName?: string
+    firstName?: string
+    lastName?: string
+  }
+}
 
 interface AddRentalCarDialogProps {
   travelRequestId: number
+  passengers: Passenger[]
   onClose: () => void
   onSuccess: () => void
 }
@@ -28,22 +42,19 @@ const INSURANCE_TYPES = [
   'LDW',
 ]
 
-interface Employee {
-  id: number
-  empId: string
-  firstName: string
-  middleName?: string
-  lastName: string
+interface AdditionalDriver {
+  personType: string
+  personId: number
+  name: string
 }
 
 export function AddRentalCarDialog({
   travelRequestId,
+  passengers,
   onClose,
   onSuccess,
 }: AddRentalCarDialogProps) {
   const [loading, setLoading] = useState(false)
-  const [employees, setEmployees] = useState<Employee[]>([])
-  const [loadingEmployees, setLoadingEmployees] = useState(true)
   const [formData, setFormData] = useState({
     company: '',
     vehicleType: '',
@@ -54,36 +65,66 @@ export function AddRentalCarDialog({
     pickupTime: '',
     dropoffDate: '',
     dropoffTime: '',
-    driverPersonId: '',
+    mainDriver: '', // Format: "personType:personId"
     insuranceType: '',
     bookingReference: '',
     status: 'PENDING',
     notes: '',
   })
+  const [additionalDrivers, setAdditionalDrivers] = useState<AdditionalDriver[]>([])
+  const [showAddDriver, setShowAddDriver] = useState(false)
 
-  useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        const response = await fetch('/api/employees')
-        const result = await response.json()
-        if (result.success) {
-          setEmployees(result.data || [])
-        }
-      } catch (error) {
-        console.error('Error fetching employees:', error)
-      } finally {
-        setLoadingEmployees(false)
-      }
+  const getPassengerName = (passenger: Passenger) => {
+    const details = passenger.personDetails
+    if (details?.fullName) return details.fullName
+    if (details?.companyName) return details.companyName
+    if (details?.firstName || details?.lastName) {
+      return `${details.firstName || ''} ${details.lastName || ''}`.trim()
     }
+    return `${passenger.personType} #${passenger.personId}`
+  }
 
-    fetchEmployees()
-  }, [])
+  const getAvailablePassengersForAdditionalDriver = () => {
+    // Exclude main driver and already added additional drivers
+    const mainDriverKey = formData.mainDriver
+    const addedKeys = additionalDrivers.map(d => `${d.personType}:${d.personId}`)
+
+    return passengers.filter(p => {
+      const key = `${p.personType}:${p.personId}`
+      return key !== mainDriverKey && !addedKeys.includes(key)
+    })
+  }
+
+  const handleAddAdditionalDriver = (passengerKey: string) => {
+    const [personType, personIdStr] = passengerKey.split(':')
+    const personId = parseInt(personIdStr)
+    const passenger = passengers.find(p => p.personType === personType && p.personId === personId)
+
+    if (passenger) {
+      setAdditionalDrivers([
+        ...additionalDrivers,
+        {
+          personType,
+          personId,
+          name: getPassengerName(passenger)
+        }
+      ])
+    }
+    setShowAddDriver(false)
+  }
+
+  const handleRemoveAdditionalDriver = (index: number) => {
+    setAdditionalDrivers(additionalDrivers.filter((_, i) => i !== index))
+  }
 
   const handleSubmit = async () => {
-    if (!formData.company || !formData.pickupLocation || !formData.driverPersonId) {
+    if (!formData.company || !formData.pickupLocation || !formData.mainDriver) {
       alert('Please fill in all required fields')
       return
     }
+
+    const [driverPersonType, driverPersonIdStr] = formData.mainDriver.split(':')
+    const driverPersonId = parseInt(driverPersonIdStr)
 
     setLoading(true)
     try {
@@ -92,11 +133,24 @@ export function AddRentalCarDialog({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           travelRequestId,
-          ...formData,
-          driverPersonType: 'EMPLOYEE',
-          driverPersonId: parseInt(formData.driverPersonId),
+          rentalCompany: formData.company,
+          carType: formData.vehicleType,
+          carModel: formData.vehicleModel,
+          pickupLocation: formData.pickupLocation,
+          returnLocation: formData.dropoffLocation,
           pickupDate: formData.pickupDate ? new Date(formData.pickupDate) : null,
-          dropoffDate: formData.dropoffDate ? new Date(formData.dropoffDate) : null,
+          pickupTime: formData.pickupTime,
+          returnDate: formData.dropoffDate ? new Date(formData.dropoffDate) : null,
+          returnTime: formData.dropoffTime,
+          driverPersonType,
+          driverPersonId,
+          additionalDrivers: additionalDrivers.length > 0
+            ? additionalDrivers.map(d => ({ personType: d.personType, personId: d.personId }))
+            : null,
+          insuranceType: formData.insuranceType,
+          bookingReference: formData.bookingReference,
+          status: formData.status,
+          notes: formData.notes,
         }),
       })
 
@@ -185,29 +239,113 @@ export function AddRentalCarDialog({
             </div>
           </div>
 
-          {/* Driver Selection */}
+          {/* Main Driver Selection */}
           <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Driver (Employee) <span className="text-red-500">*</span>
+              Main Driver (Passenger) <span className="text-red-500">*</span>
             </label>
-            <select
-              value={formData.driverPersonId}
-              onChange={(e) => setFormData({ ...formData, driverPersonId: e.target.value })}
-              disabled={loadingEmployees}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-100"
-            >
-              <option value="">
-                {loadingEmployees ? 'Loading employees...' : 'Select Driver'}
-              </option>
-              {employees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.empId} - {emp.firstName} {emp.middleName} {emp.lastName}
-                </option>
-              ))}
-            </select>
+            {passengers.length === 0 ? (
+              <div className="text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
+                No passengers added to this travel request yet. Please add passengers first.
+              </div>
+            ) : (
+              <select
+                value={formData.mainDriver}
+                onChange={(e) => {
+                  setFormData({ ...formData, mainDriver: e.target.value })
+                  // Remove from additional drivers if selected as main
+                  const newAdditional = additionalDrivers.filter(
+                    d => `${d.personType}:${d.personId}` !== e.target.value
+                  )
+                  setAdditionalDrivers(newAdditional)
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              >
+                <option value="">Select Main Driver</option>
+                {passengers.map((passenger) => (
+                  <option
+                    key={`${passenger.personType}:${passenger.personId}`}
+                    value={`${passenger.personType}:${passenger.personId}`}
+                  >
+                    {getPassengerName(passenger)} {passenger.isMainPassenger ? '(Main Passenger)' : ''}
+                  </option>
+                ))}
+              </select>
+            )}
             <p className="text-xs text-gray-500 mt-2">
-              Driver must be an employee from your organization
+              Driver must be one of the passengers in this travel request
             </p>
+          </div>
+
+          {/* Additional Drivers */}
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <label className="block text-sm font-medium text-gray-700">
+                Additional Drivers (Optional)
+              </label>
+              {formData.mainDriver && getAvailablePassengersForAdditionalDriver().length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAddDriver(!showAddDriver)}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Add Driver
+                </button>
+              )}
+            </div>
+
+            {/* Add Driver Dropdown */}
+            {showAddDriver && (
+              <div className="mb-3">
+                <select
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      handleAddAdditionalDriver(e.target.value)
+                      e.target.value = ''
+                    }
+                  }}
+                  className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select passenger to add as driver...</option>
+                  {getAvailablePassengersForAdditionalDriver().map((passenger) => (
+                    <option
+                      key={`${passenger.personType}:${passenger.personId}`}
+                      value={`${passenger.personType}:${passenger.personId}`}
+                    >
+                      {getPassengerName(passenger)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* List of Additional Drivers */}
+            {additionalDrivers.length > 0 ? (
+              <div className="space-y-2">
+                {additionalDrivers.map((driver, index) => (
+                  <div
+                    key={`${driver.personType}:${driver.personId}`}
+                    className="flex items-center justify-between bg-white px-3 py-2 rounded-lg border"
+                  >
+                    <span className="text-sm font-medium text-gray-700">{driver.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAdditionalDriver(index)}
+                      className="text-red-500 hover:text-red-700 p-1"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">
+                {!formData.mainDriver
+                  ? 'Select a main driver first to add additional drivers'
+                  : 'No additional drivers added'}
+              </p>
+            )}
           </div>
 
           {/* Pickup & Dropoff Locations */}
@@ -367,7 +505,7 @@ export function AddRentalCarDialog({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={loading || !formData.company || !formData.pickupLocation || !formData.driverPersonId}
+            disabled={loading || !formData.company || !formData.pickupLocation || !formData.mainDriver}
             className="px-6 py-2.5 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-lg hover:from-orange-700 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium shadow-lg hover:shadow-xl transition-all"
           >
             {loading ? (

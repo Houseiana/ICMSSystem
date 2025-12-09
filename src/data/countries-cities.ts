@@ -317,7 +317,7 @@ export const COUNTRIES: Country[] = [
   {
     name: 'United States',
     code: 'US',
-    cities: ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Miami', 'San Francisco', 'Las Vegas', 'Washington DC', 'Boston', 'Seattle']
+    cities: ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Miami', 'Orlando', 'San Francisco', 'Las Vegas', 'Washington DC', 'Boston', 'Seattle', 'Atlanta', 'Dallas', 'Denver', 'Phoenix', 'San Diego']
   },
   {
     name: 'Vietnam',

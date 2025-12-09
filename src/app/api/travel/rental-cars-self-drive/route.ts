@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
         returnTime: body.returnTime,
         driverPersonType: body.driverPersonType,
         driverPersonId: body.driverPersonId,
+        additionalDrivers: body.additionalDrivers || null,
         insuranceType: body.insuranceType,
         bookingReference: body.bookingReference,
         status: body.status || 'PENDING',

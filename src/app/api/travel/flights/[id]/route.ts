@@ -84,7 +84,7 @@ export async function PUT(
       )
     }
 
-    // Update flight and handle passengers
+    // Update flight with all fields
     const flight = await prisma.tripFlight.update({
       where: { id },
       data: {
@@ -97,6 +97,7 @@ export async function PUT(
         arrivalDate: body.arrivalDate ? new Date(body.arrivalDate) : null,
         arrivalTime: body.arrivalTime,
         class: body.class,
+        price: body.price,
         bookingReference: body.bookingReference,
         terminal: body.terminal,
         gate: body.gate,
@@ -104,8 +105,54 @@ export async function PUT(
         baggageAllowance: body.baggageAllowance,
         mealPreference: body.mealPreference,
         status: body.status,
-        notes: body.notes
+        notes: body.notes,
+        aircraftModel: body.aircraftModel,
+        specialRequests: body.specialRequests,
+        tripType: body.tripType,
+        fareTermsConditions: body.fareTermsConditions,
+        changeStatus: body.changeStatus,
+        changeDate: body.changeDate ? new Date(body.changeDate) : null,
+        changePrice: body.changePrice,
+        changedDepartureDate: body.changedDepartureDate ? new Date(body.changedDepartureDate) : null,
+        changedDepartureTime: body.changedDepartureTime,
+        changedArrivalDate: body.changedArrivalDate ? new Date(body.changedArrivalDate) : null,
+        changedArrivalTime: body.changedArrivalTime,
+        changeLeg: body.changeLeg
       },
+      include: {
+        passengers: true
+      }
+    })
+
+    // Handle passengers update if provided
+    if (body.passengers && Array.isArray(body.passengers)) {
+      // Delete existing passengers for this flight
+      await prisma.tripFlightPassenger.deleteMany({
+        where: { tripFlightId: id }
+      })
+
+      // Create new passengers
+      if (body.passengers.length > 0) {
+        await prisma.tripFlightPassenger.createMany({
+          data: body.passengers.map((p: any) => ({
+            tripFlightId: id,
+            personType: p.personType,
+            personId: p.personId,
+            seatNumber: p.seatNumber,
+            mealPreference: p.mealPreference,
+            specialAssistance: p.specialAssistance,
+            ticketClass: p.ticketClass,
+            ticketPrice: p.ticketPrice,
+            baggageAllowance: p.baggageAllowance,
+            bookingReference: p.bookingReference
+          }))
+        })
+      }
+    }
+
+    // Fetch updated flight with passengers
+    const updatedFlight = await prisma.tripFlight.findUnique({
+      where: { id },
       include: {
         passengers: true
       }
@@ -113,7 +160,7 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      data: flight
+      data: updatedFlight
     })
   } catch (error) {
     console.error('Error updating flight:', error)

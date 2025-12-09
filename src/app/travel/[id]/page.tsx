@@ -5,16 +5,20 @@ import { useTravelRequest } from '@/hooks/travel/useTravelRequest'
 import { StatusBadge } from '@/components/travel/StatusBadge'
 import { SendDetailsDialog } from '@/components/travel/SendDetailsDialog'
 import { AddPassengerDialog } from '@/components/travel/AddPassengerDialog'
+import { EditPassengerDialog } from '@/components/travel/EditPassengerDialog'
 import { AddFlightDialog } from '@/components/travel/AddFlightDialog'
+import { EditFlightDialog } from '@/components/travel/EditFlightDialog'
 import { AddHotelDialog } from '@/components/travel/AddHotelDialog'
 import { HotelDetailsDialog } from '@/components/travel/HotelDetailsDialog'
 import { EditHotelDialog } from '@/components/travel/EditHotelDialog'
 import { AddEventDialog } from '@/components/travel/AddEventDialog'
+import { EditEventDialog } from '@/components/travel/EditEventDialog'
 import { AddPrivateJetDialog } from '@/components/travel/AddPrivateJetDialog'
 import { AddTrainDialog } from '@/components/travel/AddTrainDialog'
 import { AddRentalCarDialog } from '@/components/travel/AddRentalCarDialog'
 import { AddCarWithDriverDialog } from '@/components/travel/AddCarWithDriverDialog'
 import { AddEmbassyServiceDialog } from '@/components/travel/AddEmbassyServiceDialog'
+import { AddMeetAssistDialog } from '@/components/travel/AddMeetAssistDialog'
 import { CommunicationsTab } from '@/components/travel/CommunicationsTab'
 import { GenerateItineraryDialog } from '@/components/travel/GenerateItineraryDialog'
 import Header from '@/components/Header'
@@ -33,10 +37,13 @@ import {
   Building2,
   FileText,
   Trash2,
+  Edit,
+  Eye,
+  UserCheck,
 } from 'lucide-react'
 import Link from 'next/link'
 
-type TabKey = 'passengers' | 'flights' | 'privateJets' | 'trains' | 'rentalCars' | 'carsWithDriver' | 'embassyServices' | 'hotels' | 'events' | 'communications'
+type TabKey = 'passengers' | 'flights' | 'privateJets' | 'trains' | 'rentalCars' | 'carsWithDriver' | 'embassyServices' | 'meetAssist' | 'hotels' | 'events' | 'communications'
 
 export default function TravelRequestDetailPage({
   params,
@@ -55,11 +62,20 @@ export default function TravelRequestDetailPage({
   const [showAddRentalCarDialog, setShowAddRentalCarDialog] = useState(false)
   const [showAddCarWithDriverDialog, setShowAddCarWithDriverDialog] = useState(false)
   const [showAddEmbassyServiceDialog, setShowAddEmbassyServiceDialog] = useState(false)
+  const [showAddMeetAssistDialog, setShowAddMeetAssistDialog] = useState(false)
   const [showAddHotelDialog, setShowAddHotelDialog] = useState(false)
   const [selectedHotel, setSelectedHotel] = useState<any | null>(null)
   const [showHotelDetailsDialog, setShowHotelDetailsDialog] = useState(false)
   const [showEditHotelDialog, setShowEditHotelDialog] = useState(false)
   const [showAddEventDialog, setShowAddEventDialog] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<any | null>(null)
+  const [eventDialogMode, setEventDialogMode] = useState<'preview' | 'edit'>('preview')
+  const [showEditEventDialog, setShowEditEventDialog] = useState(false)
+  const [selectedFlight, setSelectedFlight] = useState<any | null>(null)
+  const [showEditFlightDialog, setShowEditFlightDialog] = useState(false)
+  const [selectedPassenger, setSelectedPassenger] = useState<any | null>(null)
+  const [passengerDialogMode, setPassengerDialogMode] = useState<'preview' | 'edit'>('preview')
+  const [showEditPassengerDialog, setShowEditPassengerDialog] = useState(false)
   const [deletingItem, setDeletingItem] = useState<{type: string, id: number} | null>(null)
 
   // Delete handlers
@@ -167,6 +183,32 @@ export default function TravelRequestDetailPage({
     }
   }
 
+  const handleDeleteMeetAssist = async (serviceId: number, airport: string) => {
+    if (!confirm(`Are you sure you want to delete meet & assist service at ${airport}?`)) {
+      return
+    }
+
+    try {
+      setDeletingItem({ type: 'meetAssist', id: serviceId })
+      const response = await fetch(`/api/travel/meet-assist/${serviceId}`, {
+        method: 'DELETE'
+      })
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete meet & assist service')
+      }
+
+      await refetch()
+    } catch (error) {
+      console.error('Error deleting meet & assist:', error)
+      alert(error instanceof Error ? error.message : 'Failed to delete meet & assist service')
+    } finally {
+      setDeletingItem(null)
+    }
+  }
+
   const handleDeleteComponent = async (type: string, id: number, name: string, endpoint: string) => {
     if (!confirm(`Are you sure you want to delete ${type} ${name}?`)) {
       return
@@ -230,6 +272,7 @@ export default function TravelRequestDetailPage({
     { key: 'rentalCars', label: 'Rental Cars', icon: Car, count: request.rentalCarsSelfDrive?.length || 0 },
     { key: 'carsWithDriver', label: 'Cars with Driver', icon: Car, count: request.carsWithDriver?.length || 0 },
     { key: 'embassyServices', label: 'Embassy Services', icon: Building2, count: request.embassyServices?.length || 0 },
+    { key: 'meetAssist', label: 'Meet & Assist', icon: UserCheck, count: request.meetAssist?.length || 0 },
     { key: 'hotels', label: 'Hotels', icon: Hotel, count: request.hotels?.length || 0 },
     { key: 'events', label: 'Events', icon: Calendar, count: request.events?.length || 0 },
     { key: 'communications', label: 'Communications', icon: MessageSquare, count: request.communications?.length || 0 },
@@ -521,18 +564,42 @@ export default function TravelRequestDetailPage({
 
                                 {/* Actions */}
                                 <td className="px-4 py-3">
-                                  <button
-                                    onClick={() => handleDeletePassenger(passenger.id, passenger.personDetails?.fullName || 'Unknown')}
-                                    disabled={deletingItem?.type === 'passenger' && deletingItem?.id === passenger.id}
-                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    title="Remove passenger"
-                                  >
-                                    {deletingItem?.type === 'passenger' && deletingItem?.id === passenger.id ? (
-                                      <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-                                    ) : (
-                                      <Trash2 className="w-4 h-4" />
-                                    )}
-                                  </button>
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      onClick={() => {
+                                        setSelectedPassenger(passenger)
+                                        setPassengerDialogMode('preview')
+                                        setShowEditPassengerDialog(true)
+                                      }}
+                                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                      title="Preview passenger"
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setSelectedPassenger(passenger)
+                                        setPassengerDialogMode('edit')
+                                        setShowEditPassengerDialog(true)
+                                      }}
+                                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                      title="Edit passenger"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeletePassenger(passenger.id, passenger.personDetails?.fullName || 'Unknown')}
+                                      disabled={deletingItem?.type === 'passenger' && deletingItem?.id === passenger.id}
+                                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                      title="Remove passenger"
+                                    >
+                                      {deletingItem?.type === 'passenger' && deletingItem?.id === passenger.id ? (
+                                        <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                                      ) : (
+                                        <Trash2 className="w-4 h-4" />
+                                      )}
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             )
@@ -562,49 +629,184 @@ export default function TravelRequestDetailPage({
                   </button>
                 </div>
                 {request.flights && request.flights.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {request.flights.map((flight) => (
                       <div
                         key={flight.id}
-                        className="p-4 border rounded-lg hover:bg-gray-50 relative"
+                        className="border rounded-lg overflow-hidden bg-white shadow-sm"
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <p className="font-medium">
-                              {flight.airline} {flight.flightNumber}
-                            </p>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {flight.departureAirport} → {flight.arrivalAirport}
-                            </p>
-                            {flight.departureDate && (
-                              <p className="text-xs text-gray-500 mt-2">
-                                {new Date(flight.departureDate).toLocaleString()}
+                        {/* Flight Header */}
+                        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <Plane className="w-5 h-5" />
+                                <span className="font-bold text-lg">
+                                  {flight.airline} {flight.flightNumber}
+                                </span>
+                              </div>
+                              <p className="text-blue-100 mt-1">
+                                {flight.departureAirport} → {flight.arrivalAirport}
                               </p>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                              {flight.status}
-                            </span>
-                            <button
-                              onClick={() => handleDeleteFlight(flight.id, `${flight.airline} ${flight.flightNumber}`)}
-                              disabled={deletingItem?.type === 'flight' && deletingItem?.id === flight.id}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Delete flight"
-                            >
-                              {deletingItem?.type === 'flight' && deletingItem?.id === flight.id ? (
-                                <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                <Trash2 className="w-4 h-4" />
+                              {flight.departureDate && (
+                                <p className="text-sm text-blue-200 mt-1">
+                                  {new Date(flight.departureDate).toLocaleString()}
+                                  {flight.departureTime && ` at ${flight.departureTime}`}
+                                </p>
                               )}
-                            </button>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-xs px-2 py-1 rounded font-medium ${
+                                flight.status === 'CONFIRMED' ? 'bg-green-500 text-white' :
+                                flight.status === 'CANCELLED' ? 'bg-red-500 text-white' :
+                                flight.status === 'DELAYED' ? 'bg-yellow-500 text-white' :
+                                'bg-white/20 text-white'
+                              }`}>
+                                {flight.status}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setSelectedFlight(flight)
+                                  setShowEditFlightDialog(true)
+                                }}
+                                className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+                                title="View/Review flight"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedFlight(flight)
+                                  setShowEditFlightDialog(true)
+                                }}
+                                className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+                                title="Edit flight"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteFlight(flight.id, `${flight.airline} ${flight.flightNumber}`)}
+                                disabled={deletingItem?.type === 'flight' && deletingItem?.id === flight.id}
+                                className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
+                                title="Delete flight"
+                              >
+                                {deletingItem?.type === 'flight' && deletingItem?.id === flight.id ? (
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4" />
+                                )}
+                              </button>
+                            </div>
                           </div>
                         </div>
-                        {flight.passengers && flight.passengers.length > 0 && (
-                          <p className="text-xs text-gray-500 mt-3 pt-3 border-t">
-                            {flight.passengers.length} passenger(s)
-                          </p>
-                        )}
+
+                        {/* Flight Details */}
+                        <div className="p-4">
+                          {/* Terminal & Gate */}
+                          {(flight.terminal || flight.gate) && (
+                            <div className="flex gap-4 mb-4 text-sm">
+                              {flight.terminal && (
+                                <div className="bg-gray-50 px-3 py-2 rounded">
+                                  <span className="text-gray-500">Terminal:</span>
+                                  <span className="ml-1 font-semibold">{flight.terminal}</span>
+                                </div>
+                              )}
+                              {flight.gate && (
+                                <div className="bg-gray-50 px-3 py-2 rounded">
+                                  <span className="text-gray-500">Gate:</span>
+                                  <span className="ml-1 font-semibold">{flight.gate}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Passengers Section */}
+                          {flight.passengers && flight.passengers.length > 0 && (
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                <Users className="w-4 h-4" />
+                                Passengers ({flight.passengers.length})
+                              </h4>
+                              <div className="space-y-2">
+                                {flight.passengers.map((passenger: any, idx: number) => {
+                                  // Find passenger name from request.passengers
+                                  const passengerInfo = request.passengers?.find(
+                                    (p) => p.personType === passenger.personType && p.personId === passenger.personId
+                                  )
+                                  const personDetails = passengerInfo?.personDetails as any
+                                  const passengerName = personDetails?.fullName ||
+                                    personDetails?.companyName ||
+                                    `${passenger.personType} #${passenger.personId}`
+
+                                  return (
+                                    <div
+                                      key={passenger.id || idx}
+                                      className="bg-blue-50 border border-blue-100 rounded-lg p-3"
+                                    >
+                                      <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
+                                          {passengerName?.charAt(0) || '?'}
+                                        </div>
+                                        <div>
+                                          <p className="font-medium text-gray-900">{passengerName}</p>
+                                          <p className="text-xs text-gray-500">{passenger.personType}</p>
+                                        </div>
+                                      </div>
+                                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                        <div>
+                                          <span className="text-gray-500">Ticket Class:</span>
+                                          <span className="ml-1 font-medium">{passenger.ticketClass?.replace('_', ' ') || 'N/A'}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-gray-500">Ticket Price:</span>
+                                          <span className="ml-1 font-medium">{passenger.ticketPrice ? `$${passenger.ticketPrice}` : 'N/A'}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-gray-500">Seat:</span>
+                                          <span className="ml-1 font-medium">{passenger.seatNumber || 'N/A'}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-gray-500">Booking Ref:</span>
+                                          <span className="ml-1 font-medium font-mono">{passenger.bookingReference || 'N/A'}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-gray-500">Baggage:</span>
+                                          <span className="ml-1 font-medium">{passenger.baggageAllowance || 'N/A'}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-gray-500">Meal:</span>
+                                          <span className="ml-1 font-medium">{passenger.mealPreference || 'N/A'}</span>
+                                        </div>
+                                        {passenger.specialAssistance && (
+                                          <div className="col-span-2">
+                                            <span className="text-gray-500">Special Assistance:</span>
+                                            <span className="ml-1 font-medium">{passenger.specialAssistance}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Special Requests */}
+                          {flight.specialRequests && (
+                            <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
+                              <span className="text-yellow-700 font-medium">Special Requests: </span>
+                              <span className="text-yellow-800">{flight.specialRequests}</span>
+                            </div>
+                          )}
+
+                          {/* Notes */}
+                          {flight.notes && (
+                            <div className="mt-3 p-2 bg-gray-50 rounded text-sm">
+                              <span className="text-gray-500 font-medium">Notes: </span>
+                              <span className="text-gray-700">{flight.notes}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1151,7 +1353,12 @@ export default function TravelRequestDetailPage({
                     {request.events.map((event) => (
                       <div
                         key={event.id}
-                        className="p-4 border rounded-lg hover:bg-gray-50"
+                        className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedEvent(event)
+                          setEventDialogMode('preview')
+                          setShowEditEventDialog(true)
+                        }}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -1173,10 +1380,37 @@ export default function TravelRequestDetailPage({
                               </p>
                             )}
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                            <span className={`text-xs px-2 py-1 rounded ${
+                              event.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' :
+                              event.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
+                              event.status === 'COMPLETED' ? 'bg-blue-100 text-blue-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
                               {event.status}
                             </span>
+                            <button
+                              onClick={() => {
+                                setSelectedEvent(event)
+                                setEventDialogMode('preview')
+                                setShowEditEventDialog(true)
+                              }}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Preview event"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedEvent(event)
+                                setEventDialogMode('edit')
+                                setShowEditEventDialog(true)
+                              }}
+                              className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              title="Edit event"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
                             <button
                               onClick={() => handleDeleteEvent(event.id, event.eventName)}
                               disabled={deletingItem?.type === 'event' && deletingItem?.id === event.id}
@@ -1202,6 +1436,108 @@ export default function TravelRequestDetailPage({
                 ) : (
                   <p className="text-gray-500 text-center py-8">
                     No events or activities planned yet
+                  </p>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'meetAssist' && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Meet & Assist Services</h3>
+                  <button
+                    onClick={() => setShowAddMeetAssistDialog(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 shadow-lg hover:shadow-xl transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Meet & Assist
+                  </button>
+                </div>
+                {request.meetAssist && request.meetAssist.length > 0 ? (
+                  <div className="space-y-3">
+                    {request.meetAssist.map((service: any) => (
+                      <div
+                        key={service.id}
+                        className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <UserCheck className="w-5 h-5 text-violet-600" />
+                              <p className="font-medium">{service.airport} {service.airportName ? `- ${service.airportName}` : ''}</p>
+                              <span className="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded">
+                                {service.serviceType}
+                              </span>
+                              {service.vipLevel && service.vipLevel !== 'STANDARD' && (
+                                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                                  {service.vipLevel}
+                                </span>
+                              )}
+                            </div>
+                            {service.serviceProvider && (
+                              <p className="text-sm text-gray-600 mt-1">
+                                Provider: {service.serviceProvider}
+                              </p>
+                            )}
+                            {service.flightNumber && (
+                              <p className="text-sm text-gray-500 mt-1">
+                                Flight: {service.flightNumber}
+                              </p>
+                            )}
+                            {service.serviceDate && (
+                              <p className="text-xs text-gray-500 mt-2">
+                                {new Date(service.serviceDate).toLocaleDateString()}
+                                {service.serviceTime && ` at ${service.serviceTime}`}
+                              </p>
+                            )}
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {service.includesFastTrack && (
+                                <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Fast Track</span>
+                              )}
+                              {service.includesLounge && (
+                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Lounge</span>
+                              )}
+                              {service.includesPorterage && (
+                                <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">Porterage</span>
+                              )}
+                              {service.includesBuggy && (
+                                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">Buggy</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs px-2 py-1 rounded ${
+                              service.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' :
+                              service.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {service.status}
+                            </span>
+                            <button
+                              onClick={() => handleDeleteMeetAssist(service.id, service.airport)}
+                              disabled={deletingItem?.type === 'meetAssist' && deletingItem?.id === service.id}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Delete service"
+                            >
+                              {deletingItem?.type === 'meetAssist' && deletingItem?.id === service.id ? (
+                                <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                        {service.greeterName && (
+                          <p className="text-xs text-gray-500 mt-3 pt-3 border-t">
+                            Greeter: {service.greeterName} {service.greeterPhone && `(${service.greeterPhone})`}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-8">
+                    No meet & assist services added yet
                   </p>
                 )}
               </div>
@@ -1247,6 +1583,23 @@ export default function TravelRequestDetailPage({
         />
       )}
 
+      {/* Edit Passenger Dialog */}
+      {showEditPassengerDialog && selectedPassenger && (
+        <EditPassengerDialog
+          passenger={selectedPassenger}
+          mode={passengerDialogMode}
+          onClose={() => {
+            setShowEditPassengerDialog(false)
+            setSelectedPassenger(null)
+          }}
+          onSuccess={() => {
+            refetch()
+            setShowEditPassengerDialog(false)
+            setSelectedPassenger(null)
+          }}
+        />
+      )}
+
       {/* Add Flight Dialog */}
       {showAddFlightDialog && (
         <AddFlightDialog
@@ -1255,6 +1608,22 @@ export default function TravelRequestDetailPage({
           onSuccess={() => {
             refetch()
             setShowAddFlightDialog(false)
+          }}
+        />
+      )}
+
+      {/* Edit Flight Dialog */}
+      {showEditFlightDialog && selectedFlight && (
+        <EditFlightDialog
+          flight={selectedFlight}
+          onClose={() => {
+            setShowEditFlightDialog(false)
+            setSelectedFlight(null)
+          }}
+          onSuccess={() => {
+            refetch()
+            setShowEditFlightDialog(false)
+            setSelectedFlight(null)
           }}
         />
       )}
@@ -1290,6 +1659,19 @@ export default function TravelRequestDetailPage({
             handleDeleteHotel(selectedHotel.id, selectedHotel.hotelName)
             setSelectedHotel(null)
           }}
+          onRefresh={async () => {
+            // Refetch the travel request data and update selectedHotel
+            await refetch()
+            // Find updated hotel from request after refetch
+            const hotelId = selectedHotel.id
+            setTimeout(() => {
+              // Request should be updated now, find the hotel
+              const updatedHotel = request.hotels?.find((h: any) => h.id === hotelId)
+              if (updatedHotel) {
+                setSelectedHotel(updatedHotel)
+              }
+            }, 200)
+          }}
         />
       )}
 
@@ -1317,6 +1699,23 @@ export default function TravelRequestDetailPage({
           onSuccess={() => {
             refetch()
             setShowAddEventDialog(false)
+          }}
+        />
+      )}
+
+      {/* Edit Event Dialog */}
+      {showEditEventDialog && selectedEvent && (
+        <EditEventDialog
+          event={selectedEvent}
+          mode={eventDialogMode}
+          onClose={() => {
+            setShowEditEventDialog(false)
+            setSelectedEvent(null)
+          }}
+          onSuccess={() => {
+            refetch()
+            setShowEditEventDialog(false)
+            setSelectedEvent(null)
           }}
         />
       )}
@@ -1349,6 +1748,7 @@ export default function TravelRequestDetailPage({
       {showAddRentalCarDialog && (
         <AddRentalCarDialog
           travelRequestId={request.id}
+          passengers={request.passengers || []}
           onClose={() => setShowAddRentalCarDialog(false)}
           onSuccess={() => {
             refetch()
@@ -1377,6 +1777,17 @@ export default function TravelRequestDetailPage({
           onSuccess={() => {
             refetch()
             setShowAddEmbassyServiceDialog(false)
+          }}
+        />
+      )}
+
+      {showAddMeetAssistDialog && (
+        <AddMeetAssistDialog
+          travelRequestId={request.id}
+          onClose={() => setShowAddMeetAssistDialog(false)}
+          onSuccess={() => {
+            refetch()
+            setShowAddMeetAssistDialog(false)
           }}
         />
       )}

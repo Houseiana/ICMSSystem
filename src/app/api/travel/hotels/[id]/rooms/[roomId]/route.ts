@@ -94,8 +94,36 @@ export async function PUT(
         bedType: body.bedType,
         connectedToRoom: body.connectedToRoom,
         pricePerNight: body.pricePerNight,
-        includesBreakfast: body.includesBreakfast
+        includesBreakfast: body.includesBreakfast,
+        websiteUrl: body.websiteUrl
       },
+      include: {
+        assignments: true
+      }
+    })
+
+    // Handle guest assignments update if provided
+    if (body.assignments && Array.isArray(body.assignments)) {
+      // Delete existing assignments
+      await prisma.tripRoomAssignment.deleteMany({
+        where: { tripHotelRoomId: roomId }
+      })
+
+      // Create new assignments
+      if (body.assignments.length > 0) {
+        await prisma.tripRoomAssignment.createMany({
+          data: body.assignments.map((a: any) => ({
+            tripHotelRoomId: roomId,
+            personType: a.personType,
+            personId: a.personId
+          }))
+        })
+      }
+    }
+
+    // Fetch updated room with assignments
+    const updatedRoom = await prisma.tripHotelRoom.findUnique({
+      where: { id: roomId },
       include: {
         assignments: true
       }
@@ -103,7 +131,7 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      data: room
+      data: updatedRoom
     })
   } catch (error) {
     console.error('Error updating room:', error)

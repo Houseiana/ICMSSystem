@@ -20,6 +20,7 @@ interface RoomFormData {
   connectedToRoom: string
   pricePerNight: number | null
   includesBreakfast: boolean
+  websiteUrl: string
   guests: GuestAssignment[]
 }
 
@@ -68,6 +69,7 @@ export function AddHotelDialog({
       connectedToRoom: '',
       pricePerNight: null,
       includesBreakfast: false,
+      websiteUrl: '',
       guests: [],
     }
     const updatedRooms = [...rooms, newRoom]
@@ -120,6 +122,7 @@ export function AddHotelDialog({
           connectedToRoom: room.connectedToRoom,
           pricePerNight: room.pricePerNight,
           includesBreakfast: room.includesBreakfast,
+          websiteUrl: room.websiteUrl,
           assignments: room.guests.map(guest => ({
             personType: 'PASSENGER',
             personId: guest.passengerId
@@ -473,6 +476,21 @@ export function AddHotelDialog({
                           value={room.connectedToRoom}
                           onChange={(e) => updateRoom(index, 'connectedToRoom', e.target.value)}
                           placeholder="e.g., Room 406"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+
+                      {/* Website URL */}
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Room Website Link
+                          <span className="text-xs text-gray-500 ml-2">(Photos, description, features)</span>
+                        </label>
+                        <input
+                          type="url"
+                          value={room.websiteUrl}
+                          onChange={(e) => updateRoom(index, 'websiteUrl', e.target.value)}
+                          placeholder="e.g., https://hotel.com/rooms/deluxe-suite"
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>

@@ -16,6 +16,12 @@ const menuItems = [
     description: 'Overview and statistics'
   },
   {
+    icon: '📅',
+    label: 'Daily Operations',
+    path: '/dashboard/daily-operations',
+    description: 'Meetings, tasks & daily activities'
+  },
+  {
     icon: '👥',
     label: 'Employees',
     path: '/dashboard/employees',
@@ -62,6 +68,12 @@ const menuItems = [
     label: 'Travel Management',
     path: '/travel',
     description: 'Manage travel requests and itineraries'
+  },
+  {
+    icon: '💰',
+    label: 'Finance',
+    path: '/finance',
+    description: 'Manage finances, assets, and liabilities'
   },
   {
     icon: '⚙️',
