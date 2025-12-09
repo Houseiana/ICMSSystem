@@ -19,12 +19,15 @@ import {
   ChevronRight,
   AlertCircle,
   Play,
-  X
+  X,
+  Send,
+  Mail
 } from 'lucide-react'
 import Calendar from '@/components/Calendar'
 import MeetingForm from '@/components/MeetingForm'
 import TaskForm from '@/components/TaskForm'
 import ConfirmModal from '@/components/ConfirmModal'
+import SendNotificationDialog from '@/components/SendNotificationDialog'
 
 interface Meeting {
   id: number
@@ -87,6 +90,13 @@ export default function DailyOperationsPage() {
     id: number | null
     title: string
   }>({ isOpen: false, type: 'meeting', id: null, title: '' })
+
+  // Notification dialog
+  const [notificationDialog, setNotificationDialog] = useState<{
+    isOpen: boolean
+    type: 'meeting-reminder' | 'task-assignment' | 'daily-tasks'
+    data: any
+  }>({ isOpen: false, type: 'meeting-reminder', data: {} })
 
   // Format date for display
   const formatDate = (date: Date) => {
@@ -414,6 +424,21 @@ export default function DailyOperationsPage() {
                           </div>
                           <div className="flex items-center gap-1">
                             <button
+                              onClick={() => setNotificationDialog({
+                                isOpen: true,
+                                type: 'meeting-reminder',
+                                data: {
+                                  id: meeting.id,
+                                  title: meeting.title,
+                                  recipientName: meeting.organizer
+                                }
+                              })}
+                              className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              title="Send Reminder"
+                            >
+                              <Send className="w-4 h-4" />
+                            </button>
+                            <button
                               onClick={() => handleEditMeeting(meeting)}
                               className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                               title="Edit Meeting"
@@ -444,13 +469,32 @@ export default function DailyOperationsPage() {
                 <CheckCircle2 className="w-5 h-5 text-orange-600" />
                 Tasks
               </h3>
-              <button
-                onClick={handleAddTask}
-                className="flex items-center gap-2 px-3 py-1.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm"
-              >
-                <Plus className="w-4 h-4" />
-                Add Task
-              </button>
+              <div className="flex items-center gap-2">
+                {tasks.length > 0 && (
+                  <button
+                    onClick={() => setNotificationDialog({
+                      isOpen: true,
+                      type: 'daily-tasks',
+                      data: {
+                        date: selectedDate.toISOString().split('T')[0],
+                        title: `Daily Tasks for ${formatDate(selectedDate)}`
+                      }
+                    })}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                    title="Send daily tasks email"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Send Tasks Email
+                  </button>
+                )}
+                <button
+                  onClick={handleAddTask}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Task
+                </button>
+              </div>
             </div>
 
             <div className="p-4">
@@ -558,6 +602,23 @@ export default function DailyOperationsPage() {
 
                         {/* Actions */}
                         <div className="flex items-center gap-1">
+                          {task.assignedTo && task.status !== 'COMPLETED' && task.status !== 'TRANSFERRED' && (
+                            <button
+                              onClick={() => setNotificationDialog({
+                                isOpen: true,
+                                type: 'task-assignment',
+                                data: {
+                                  id: task.id,
+                                  title: task.title,
+                                  recipientName: task.assignedTo
+                                }
+                              })}
+                              className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              title="Send Task Notification"
+                            >
+                              <Send className="w-4 h-4" />
+                            </button>
+                          )}
                           {task.status !== 'COMPLETED' && task.status !== 'TRANSFERRED' && (
                             <button
                               onClick={() => handleTransferTask(task)}
@@ -633,6 +694,14 @@ export default function DailyOperationsPage() {
         type="danger"
         onConfirm={handleDeleteConfirm}
         onClose={() => setDeleteModal({ isOpen: false, type: 'meeting', id: null, title: '' })}
+      />
+
+      {/* Send Notification Dialog */}
+      <SendNotificationDialog
+        isOpen={notificationDialog.isOpen}
+        onClose={() => setNotificationDialog({ isOpen: false, type: 'meeting-reminder', data: {} })}
+        type={notificationDialog.type}
+        data={notificationDialog.data}
       />
     </div>
   )
