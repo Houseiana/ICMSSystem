@@ -630,9 +630,9 @@ export default function DailyOperationsPage() {
         title={`Delete ${deleteModal.type === 'meeting' ? 'Meeting' : 'Task'}`}
         message={`Are you sure you want to delete "${deleteModal.title}"? This action cannot be undone.`}
         confirmText="Delete"
-        confirmStyle="danger"
+        type="danger"
         onConfirm={handleDeleteConfirm}
-        onCancel={() => setDeleteModal({ isOpen: false, type: 'meeting', id: null, title: '' })}
+        onClose={() => setDeleteModal({ isOpen: false, type: 'meeting', id: null, title: '' })}
       />
     </div>
   )
